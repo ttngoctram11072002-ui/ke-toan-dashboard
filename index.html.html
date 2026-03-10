@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Báo Cáo Quản Trị | Kế Toán</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0a0f1e;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: rgba(99,179,237,0.12);
+    --accent: #3b82f6;
+    --accent2: #06b6d4;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --purple: #8b5cf6;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card-glow: rgba(59,130,246,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper { position: relative; z-index: 1; }
+
+  /* HEADER */
+  header {
+    background: rgba(17,24,39,0.9);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .upload-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .upload-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(59,130,246,0.4);
+  }
+
+  .upload-btn input[type=file] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    font-size: 0;
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+  }
+
+  /* MAIN */
+  main { padding: 28px 32px; max-width: 1600px; margin: 0 auto; }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    margin-top: 28px;
+  }
+
+  /* UPLOAD AREA */
+  .upload-zone {
+    border: 2px dashed rgba(59,130,246,0.3);
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+    background: rgba(59,130,246,0.04);
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+    margin-bottom: 8px;
+  }
+
+  .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(59,130,246,0.1);
+  }
+
+  .upload-zone input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .upload-icon { font-size: 40px; margin-bottom: 12px; }
+
+  .upload-zone h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .upload-zone p {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .upload-zone .hint {
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* FILE INFO */
+  .file-info {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.3);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+
+  .file-info.show { display: flex; }
+
+  /* KPI GRID */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px var(--card-glow);
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    filter: blur(30px);
+    opacity: 0.3;
+  }
+
+  .kpi-card.blue::before { background: var(--accent); }
+  .kpi-card.green::before { background: var(--green); }
+  .kpi-card.red::before { background: var(--red); }
+  .kpi-card.purple::before { background: var(--purple); }
+
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .kpi-value {
+    font-size: 26px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+
+  .kpi-card.blue .kpi-value { color: var(--accent); }
+  .kpi-card.green .kpi-value { color: var(--green); }
+  .kpi-card.red .kpi-value { color: var(--red); }
+  .kpi-card.purple .kpi-value { color: var(--purple); }
+
+  .kpi-change {
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .kpi-change.up { color: var(--green); }
+  .kpi-change.down { color: var(--red); }
+
+  /* CHARTS ROW */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+  }
+
+  .chart-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .chart-subtitle {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  canvas { max-height: 240px; }
+
+  /* BOTTOM ROW */
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* TABLE */
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    grid-column: span 2;
+  }
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(99,179,237,0.06);
+    font-size: 13px;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(59,130,246,0.04); }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge.thu { background: rgba(16,185,129,0.15); color: var(--green); }
+  .badge.chi { background: rgba(239,68,68,0.15); color: var(--red); }
+  .badge.no { background: rgba(245,158,11,0.15); color: var(--yellow); }
+
+  /* ALERTS */
+  .alerts-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+  }
+
+  .alert-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(99,179,237,0.06);
+    font-size: 12px;
+  }
+
+  .alert-item:last-child { border-bottom: none; }
+
+  .alert-icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .alert-icon.warn { background: rgba(245,158,11,0.15); }
+  .alert-icon.danger { background: rgba(239,68,68,0.15); }
+  .alert-icon.info { background: rgba(59,130,246,0.15); }
+
+  .alert-text { line-height: 1.5; }
+  .alert-text strong { display: block; font-weight: 600; }
+  .alert-text span { color: var(--muted); font-size: 11px; }
+
+  /* SHEET SELECTOR */
+  .sheet-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .sheet-btn {
+    padding: 5px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .sheet-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  /* RAW DATA TABLE */
+  .raw-table-wrap {
+    overflow-x: auto;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .raw-table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
+  .raw-table-wrap::-webkit-scrollbar-track { background: transparent; }
+  .raw-table-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* RATIO CARD */
+  .ratio-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .ratio-item {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .ratio-val {
+    font-size: 20px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent2);
+  }
+
+  .ratio-name {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* PROGRESS BAR */
+  .progress-wrap { margin-top: 6px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+  .progress-bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 13px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    z-index: 999;
+    animation: slideUp 0.3s ease;
+  }
+
+  .toast.show { display: flex; }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* Animations */
+  .fade-in {
+    animation: fadeIn 0.5s ease forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  .kpi-card { animation: fadeIn 0.5s ease forwards; opacity: 0; }
+  .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+  .kpi-card:nth-child(2) { animation-delay: 0.1s; }
+  .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+  .kpi-card:nth-child(4) { animation-delay: 0.2s; }
+
+  @media (max-width: 1200px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    .bottom-row { grid-template-columns: 1fr; }
+    .table-card { grid-column: span 1; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">📊</div>
+    <div class="logo-text">Kế Toán <span>Dashboard</span></div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      Realtime
+    </div>
+    <button class="upload-btn">
+      📂 Upload Excel
+      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(this)">
+    </button>
+  </div>
+</header>
+
+<main>
+
+  <!-- UPLOAD ZONE -->
+  <div id="uploadZone" class="upload-zone" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event)">
+    <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(this)">
+    <div class="upload-icon">📁</div>
+    <h3>Kéo thả file Excel vào đây</h3>
+    <p>Hoặc nhấp để chọn file từ máy tính</p>
+    <div class="hint">Hỗ trợ: .xlsx · .xls · .csv</div>
+    <div style="margin-top:16px; font-size:12px; color:var(--muted);">
+      💡 Chưa có file? Dashboard đang hiển thị <strong style="color:var(--accent)">dữ liệu mẫu</strong> để học viên thực hành
+    </div>
+  </div>
+
+  <div id="fileInfo" class="file-info">
+    <span>✅</span>
+    <span id="fileName">—</span>
+    <span style="color:var(--muted)">|</span>
+    <span id="fileSize">—</span>
+    <span style="color:var(--muted); margin-left:auto; font-size:11px;" id="sheetCount">—</span>
+  </div>
+
+  <!-- SHEET TABS (hidden by default) -->
+  <div id="sheetTabs" style="display:none;">
+    <div class="section-title">Chọn Sheet</div>
+    <div class="sheet-selector" id="sheetBtns"></div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="section-title">Chỉ Số Tài Chính Tổng Hợp</div>
+  <div class="kpi-grid">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Doanh Thu Tháng</div>
+      <div class="kpi-value" id="kpi-revenue">842.5M</div>
+      <div class="kpi-change up" id="kpi-revenue-change">▲ +12.4% so với tháng trước</div>
+      <div style="margin-top:12px;">
+        <div class="progress-wrap">
+          <div class="progress-label"><span style="font-size:10px;color:var(--muted)">Mục tiêu: 1 tỷ</span><span style="font-size:10px;color:var(--accent)" id="revenue-pct">84%</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="revenue-bar" style="width:84%;background:var(--accent)"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Lợi Nhuận Ròng</div>
+      <div class="kpi-value" id="kpi-profit">198.3M</div>
+      <div class="kpi-change up" id="kpi-profit-change">▲ +8.7% biên lợi nhuận</div>
+      <div style="margin-top:12px;">
+        <div class="progress-wrap">
+          <div class="progress-label"><span style="font-size:10px;color:var(--muted)">Tỷ suất</span><span style="font-size:10px;color:var(--green)" id="margin-pct">23.5%</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="margin-bar" style="width:47%;background:var(--green)"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">Tổng Chi Phí</div>
+      <div class="kpi-value" id="kpi-expense">644.2M</div>
+      <div class="kpi-change down" id="kpi-expense-change">▼ Chi phí chiếm 76.5%</div>
+      <div style="margin-top:12px;">
+        <div class="progress-wrap">
+          <div class="progress-label"><span style="font-size:10px;color:var(--muted)">Ngân sách</span><span style="font-size:10px;color:var(--red)" id="expense-pct">91%</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="expense-bar" style="width:91%;background:var(--red)"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-label">Dòng Tiền (Cash Flow)</div>
+      <div class="kpi-value" id="kpi-cashflow">+312.1M</div>
+      <div class="kpi-change up" id="kpi-cashflow-change">▲ Tồn quỹ cuối kỳ</div>
+      <div style="margin-top:12px;">
+        <div class="progress-wrap">
+          <div class="progress-label"><span style="font-size:10px;color:var(--muted)">Tỷ lệ dự trữ</span><span style="font-size:10px;color:var(--purple)">37%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:37%;background:var(--purple)"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="section-title">Biểu Đồ Phân Tích</div>
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Doanh Thu & Chi Phí 6 Tháng</div>
+      <div class="chart-subtitle">So sánh doanh thu và chi phí theo tháng</div>
+      <canvas id="revenueChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Cơ Cấu Chi Phí</div>
+      <div class="chart-subtitle">Phân bổ chi phí theo khoản mục</div>
+      <canvas id="expenseChart"></canvas>
+    </div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="section-title">Chi Tiết & Phân Tích</div>
+  <div class="bottom-row">
+
+    <!-- TRANSACTIONS -->
+    <div class="table-card">
+      <div class="table-header">
+        <div>
+          <div class="chart-title">Giao Dịch Gần Nhất</div>
+          <div class="chart-subtitle" id="tableSubtitle">Dữ liệu mẫu • 10 giao dịch</div>
+        </div>
+        <button onclick="exportCSV()" style="padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;">
+          ⬇ Xuất CSV
+        </button>
+      </div>
+      <div class="raw-table-wrap">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>Ngày</th>
+              <th>Diễn Giải</th>
+              <th>Loại</th>
+              <th>Số Tiền</th>
+              <th>Trạng Thái</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RATIOS & ALERTS -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="chart-card">
+        <div class="chart-title">Chỉ Số Tài Chính</div>
+        <div class="chart-subtitle">Các hệ số phân tích quan trọng</div>
+        <div class="ratio-grid" id="ratioGrid">
+          <div class="ratio-item">
+            <div class="ratio-val" id="r1">2.4</div>
+            <div class="ratio-name">Current Ratio</div>
+          </div>
+          <div class="ratio-item">
+            <div class="ratio-val" id="r2">18.2%</div>
+            <div class="ratio-name">ROE</div>
+          </div>
+          <div class="ratio-item">
+            <div class="ratio-val" id="r3">1.8</div>
+            <div class="ratio-name">Vòng quay hàng tồn</div>
+          </div>
+          <div class="ratio-item">
+            <div class="ratio-val" id="r4">42 ngày</div>
+            <div class="ratio-name">Kỳ thu tiền BQ</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alerts-card">
+        <div class="chart-title" style="margin-bottom:14px;">⚠️ Cảnh Báo</div>
+        <div class="alert-item">
+          <div class="alert-icon danger">🔴</div>
+          <div class="alert-text">
+            <strong>3 hóa đơn quá hạn</strong>
+            <span>Tổng 48.5M chưa thu được</span>
+          </div>
+        </div>
+        <div class="alert-item">
+          <div class="alert-icon warn">🟡</div>
+          <div class="alert-text">
+            <strong>Chi phí lương vượt 5%</strong>
+            <span>So với kế hoạch tháng này</span>
+          </div>
+        </div>
+        <div class="alert-item">
+          <div class="alert-icon info">🔵</div>
+          <div class="alert-text">
+            <strong>Tồn kho sản phẩm A thấp</strong>
+            <span>Còn 120 đơn vị, nên đặt thêm</span>
+          </div>
+        </div>
+        <div class="alert-item">
+          <div class="alert-icon warn">🟡</div>
+          <div class="alert-text">
+            <strong>Khoản phải trả đến hạn</strong>
+            <span>32M cần thanh toán trong 3 ngày</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toastIcon">✅</span>
+  <span id="toastMsg">File đã được tải lên!</span>
+</div>
+
+<script>
+// ===== DEFAULT SAMPLE DATA =====
+const sampleData = {
+  labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
+  revenue: [650, 720, 780, 810, 790, 842],
+  expense: [510, 545, 590, 620, 600, 644],
+  expenseBreakdown: {
+    labels: ['Lương & BHXH', 'Nguyên vật liệu', 'Chi phí bán hàng', 'Khấu hao', 'Chi phí quản lý', 'Khác'],
+    values: [35, 28, 15, 10, 8, 4]
+  }
+};
+
+const sampleTransactions = [
+  { date: '10/06/2025', desc: 'Thu tiền khách hàng Cty A', type: 'thu', amount: '125,000,000', status: 'Hoàn thành' },
+  { date: '09/06/2025', desc: 'Chi trả nhà cung cấp B', type: 'chi', amount: '45,500,000', status: 'Hoàn thành' },
+  { date: '08/06/2025', desc: 'Thu hoa hồng đại lý', type: 'thu', amount: '18,200,000', status: 'Hoàn thành' },
+  { date: '07/06/2025', desc: 'Chi phí lương tháng 6', type: 'chi', amount: '230,000,000', status: 'Hoàn thành' },
+  { date: '06/06/2025', desc: 'Công nợ Cty C chưa thu', type: 'no', amount: '48,500,000', status: 'Quá hạn' },
+  { date: '05/06/2025', desc: 'Thu doanh thu dịch vụ', type: 'thu', amount: '67,300,000', status: 'Hoàn thành' },
+  { date: '04/06/2025', desc: 'Chi mua nguyên vật liệu', type: 'chi', amount: '89,100,000', status: 'Hoàn thành' },
+  { date: '03/06/2025', desc: 'Thu hàng xuất khẩu', type: 'thu', amount: '210,000,000', status: 'Hoàn thành' },
+  { date: '02/06/2025', desc: 'Chi thuê văn phòng Q2', type: 'chi', amount: '32,000,000', status: 'Đến hạn' },
+  { date: '01/06/2025', desc: 'Thu cọc hợp đồng mới', type: 'thu', amount: '50,000,000', status: 'Hoàn thành' },
+];
+
+let revenueChart, expenseChart;
+let currentWorkbook = null;
+let rawTableData = [];
+
+function initCharts() {
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Be Vietnam Pro', size: 11 } } } }
+  };
+
+  // Revenue Chart
+  const rCtx = document.getElementById('revenueChart').getContext('2d');
+  revenueChart = new Chart(rCtx, {
+    type: 'bar',
+    data: {
+      labels: sampleData.labels,
+      datasets: [
+        {
+          label: 'Doanh Thu (triệu)',
+          data: sampleData.revenue,
+          backgroundColor: 'rgba(59,130,246,0.7)',
+          borderRadius: 6,
+          borderSkipped: false,
+        },
+        {
+          label: 'Chi Phí (triệu)',
+          data: sampleData.expense,
+          backgroundColor: 'rgba(239,68,68,0.5)',
+          borderRadius: 6,
+          borderSkipped: false,
+        },
+        {
+          label: 'Lợi Nhuận (triệu)',
+          data: sampleData.revenue.map((r, i) => r - sampleData.expense[i]),
+          type: 'line',
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16,185,129,0.1)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#10b981',
+        }
+      ]
+    },
+    options: {
+      ...commonOptions,
+      scales: {
+        x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { color: 'rgba(99,179,237,0.05)' } },
+        y: { ticks: { color: '#64748b', font: { size: 11 }, callback: v => v + 'M' }, grid: { color: 'rgba(99,179,237,0.05)' } }
+      }
+    }
+  });
+
+  // Expense Donut
+  const eCtx = document.getElementById('expenseChart').getContext('2d');
+  expenseChart = new Chart(eCtx, {
+    type: 'doughnut',
+    data: {
+      labels: sampleData.expenseBreakdown.labels,
+      datasets: [{
+        data: sampleData.expenseBreakdown.values,
+        backgroundColor: ['#3b82f6','#ef4444','#f59e0b','#8b5cf6','#06b6d4','#64748b'],
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      ...commonOptions,
+      cutout: '65%',
+      plugins: {
+        ...commonOptions.plugins,
+        legend: { ...commonOptions.plugins.legend, position: 'bottom' }
+      }
+    }
+  });
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  const rows = data.slice(0, 50);
+  rows.forEach(row => {
+    const tr = document.createElement('tr');
+    if (Array.isArray(row)) {
+      row.forEach(cell => {
+        const td = document.createElement('td');
+        td.textContent = cell ?? '';
+        tr.appendChild(td);
+      });
+    } else {
+      tr.innerHTML = `
+        <td>${row.date}</td>
+        <td>${row.desc}</td>
+        <td><span class="badge ${row.type}">${row.type === 'thu' ? '↑ Thu' : row.type === 'chi' ? '↓ Chi' : '⏳ Nợ'}</span></td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${row.amount}</td>
+        <td><span class="badge ${row.status === 'Hoàn thành' ? 'thu' : row.status === 'Quá hạn' ? 'chi' : 'no'}">${row.status}</span></td>
+      `;
+    }
+    tbody.appendChild(tr);
+  });
+}
+
+function renderDefaultTable() {
+  const thead = document.querySelector('#dataTable thead tr');
+  thead.innerHTML = '<th>Ngày</th><th>Diễn Giải</th><th>Loại</th><th>Số Tiền</th><th>Trạng Thái</th>';
+  renderTable(sampleTransactions);
+}
+
+// ===== EXCEL HANDLING =====
+function handleFileUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  processFile(file);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  dragLeave(e);
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.add('drag-over');
+}
+
+function dragLeave(e) {
+  document.getElementById('uploadZone').classList.remove('drag-over');
+}
+
+function processFile(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      currentWorkbook = workbook;
+
+      // Show file info
+      document.getElementById('fileInfo').classList.add('show');
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileSize').textContent = formatBytes(file.size);
+      document.getElementById('sheetCount').textContent = workbook.SheetNames.length + ' sheets';
+
+      // Sheet tabs
+      const tabsDiv = document.getElementById('sheetTabs');
+      const btnsDiv = document.getElementById('sheetBtns');
+      tabsDiv.style.display = 'block';
+      btnsDiv.innerHTML = '';
+      workbook.SheetNames.forEach((name, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'sheet-btn' + (i === 0 ? ' active' : '');
+        btn.textContent = name;
+        btn.onclick = () => loadSheet(name, btn);
+        btnsDiv.appendChild(btn);
+      });
+
+      // Load first sheet
+      loadSheet(workbook.SheetNames[0], btnsDiv.children[0]);
+      showToast('✅', `Đã tải: ${file.name}`);
+
+    } catch (err) {
+      showToast('❌', 'Lỗi đọc file. Vui lòng thử lại.');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function loadSheet(sheetName, btn) {
+  // Update active btn
+  document.querySelectorAll('.sheet-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const ws = currentWorkbook.Sheets[sheetName];
+  const json = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+  if (json.length === 0) {
+    showToast('⚠️', 'Sheet này không có dữ liệu');
+    return;
+  }
+
+  rawTableData = json;
+
+  // Update table header
+  const thead = document.querySelector('#dataTable thead tr');
+  thead.innerHTML = '';
+  const headers = json[0];
+  headers.forEach(h => {
+    const th = document.createElement('th');
+    th.textContent = h || '—';
+    thead.appendChild(th);
+  });
+
+  // Update table subtitle
+  document.getElementById('tableSubtitle').textContent =
+    `Sheet: ${sheetName} • ${json.length - 1} dòng dữ liệu`;
+
+  // Render data rows
+  renderTable(json.slice(1));
+
+  // Analyze numeric columns for charts
+  analyzeAndUpdateCharts(json);
+}
+
+function analyzeAndUpdateCharts(json) {
+  if (json.length < 2) return;
+  const headers = json[0];
+  const rows = json.slice(1);
+
+  // Find numeric columns
+  const numericCols = [];
+  headers.forEach((h, i) => {
+    const vals = rows.map(r => parseFloat(String(r[i]).replace(/[,. ]/g, '').replace(',', '.'))).filter(v => !isNaN(v));
+    if (vals.length > rows.length * 0.5) numericCols.push({ name: h, index: i, values: vals });
+  });
+
+  if (numericCols.length >= 2) {
+    const labels = rows.map((r, i) => r[0] ? String(r[0]).substring(0, 15) : `Dòng ${i+1}`);
+    const col1 = numericCols[0];
+    const col2 = numericCols[1];
+
+    revenueChart.data.labels = labels.slice(0, 12);
+    revenueChart.data.datasets[0].label = col1.name;
+    revenueChart.data.datasets[0].data = col1.values.slice(0, 12);
+    revenueChart.data.datasets[1].label = col2.name;
+    revenueChart.data.datasets[1].data = col2.values.slice(0, 12);
+    revenueChart.data.datasets[2].data = col1.values.slice(0, 12).map((v, i) => v - (col2.values[i] || 0));
+    revenueChart.update();
+
+    // Update KPIs from file
+    const sum1 = col1.values.reduce((a, b) => a + b, 0);
+    const sum2 = col2.values.reduce((a, b) => a + b, 0);
+    document.getElementById('kpi-revenue').textContent = formatMillion(sum1);
+    document.getElementById('kpi-expense').textContent = formatMillion(sum2);
+    document.getElementById('kpi-profit').textContent = formatMillion(sum1 - sum2);
+    document.getElementById('kpi-cashflow').textContent = '+' + formatMillion((sum1 - sum2) * 0.6);
+  }
+}
+
+function formatMillion(val) {
+  if (Math.abs(val) >= 1e9) return (val / 1e9).toFixed(1) + 'T';
+  if (Math.abs(val) >= 1e6) return (val / 1e6).toFixed(1) + 'M';
+  if (Math.abs(val) >= 1e3) return (val / 1e3).toFixed(1) + 'K';
+  return val.toFixed(0);
+}
+
+function formatBytes(b) {
+  if (b > 1e6) return (b / 1e6).toFixed(2) + ' MB';
+  return (b / 1e3).toFixed(1) + ' KB';
+}
+
+function exportCSV() {
+  const table = document.getElementById('dataTable');
+  let csv = '';
+  table.querySelectorAll('tr').forEach(row => {
+    const cols = Array.from(row.querySelectorAll('th,td')).map(c => `"${c.textContent.trim()}"`);
+    csv += cols.join(',') + '\n';
+  });
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bao-cao-ke-toan.csv';
+  a.click();
+  showToast('⬇️', 'Đã xuất file CSV');
+}
+
+function showToast(icon, msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastIcon').textContent = icon;
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  initCharts();
+  renderDefaultTable();
+});
+</script>
+</body>
+</html>
