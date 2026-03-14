@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial Dashboard 2024–2025</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #080c14;
+    --surface: #0d1320;
+    --surface2: #111827;
+    --border: #1e2a3a;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --green: #10d679;
+    --red: #ff4560;
+    --yellow: #fbbf24;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card-glow: 0 0 30px rgba(0,212,255,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(0,212,255,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(124,58,237,0.08) 0%, transparent 60%);
+  }
+
+  /* HEADER */
+  .header {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(13,19,32,0.8);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 16px; color: #fff;
+  }
+  .header-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 700;
+    background: linear-gradient(90deg, var(--accent), #a78bfa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  /* UPLOAD */
+  .upload-zone {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .upload-zone:hover { border-color: var(--accent); box-shadow: 0 0 16px rgba(0,212,255,0.12); }
+  .upload-zone input[type=file] { display: none; }
+  .upload-label { font-size: 12px; color: var(--accent); cursor: pointer; white-space: nowrap; }
+  .upload-status { font-size: 11px; color: var(--muted); }
+
+  /* CONTROLS */
+  .controls {
+    padding: 16px 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .control-group { display: flex; align-items: center; gap: 8px; }
+  .control-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 7px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  select:hover, select:focus { border-color: var(--accent); }
+  .checkbox-group { display: flex; gap: 10px; }
+  .checkbox-item { display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 12px; }
+  .checkbox-item input { accent-color: var(--accent); width: 14px; height: 14px; }
+
+  /* MAIN */
+  .main { padding: 24px 32px; }
+
+  /* KPI CARDS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--card-glow);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0.5;
+  }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,212,255,0.1); }
+  .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
+  .kpi-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 800;
+    color: var(--text); margin-bottom: 6px;
+  }
+  .kpi-change { font-size: 11px; display: flex; align-items: center; gap: 4px; }
+  .kpi-change.pos { color: var(--green); }
+  .kpi-change.neg { color: var(--red); }
+  .kpi-change.neu { color: var(--muted); }
+
+  /* CHARTS GRID */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 1100px) { .charts-grid { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: var(--card-glow);
+  }
+  .chart-card.wide { grid-column: 1 / -1; }
+  .chart-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: var(--text); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .chart-title::before {
+    content: ''; width: 3px; height: 14px;
+    background: var(--accent); border-radius: 2px;
+  }
+  canvas { max-height: 260px; }
+
+  /* VARIANCE TABLE */
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: var(--card-glow);
+    overflow-x: auto;
+  }
+  .table-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: var(--text); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .table-title::before { content: ''; width: 3px; height: 14px; background: var(--accent2); border-radius: 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    text-align: left; padding: 10px 12px;
+    color: var(--muted); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td { padding: 10px 12px; border-bottom: 1px solid rgba(30,42,58,0.5); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .var-pos { color: var(--green); font-weight: 500; }
+  .var-neg { color: var(--red); font-weight: 500; }
+  .row-total { font-weight: 700; color: var(--accent); }
+
+  /* CDN error */
+  #cdnError {
+    display: none;
+    background: rgba(255,69,96,0.1);
+    border: 1px solid var(--red);
+    border-radius: 10px;
+    padding: 16px; margin: 24px 32px;
+    font-size: 13px; color: var(--red);
+  }
+
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle; margin-right: 4px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">FD</div>
+    <div>
+      <div class="header-title">Financial Dashboard</div>
+      <div class="header-sub">KQKD 2024 – 2025 · tỷ VND</div>
+    </div>
+  </div>
+  <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+    <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleUpload(event)">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2">
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+    </svg>
+    <label class="upload-label" for="fileInput">Upload Excel</label>
+    <span class="upload-status" id="uploadStatus">Sample data loaded</span>
+  </div>
+</div>
+
+<div id="cdnError"></div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="control-group">
+    <span class="control-label">Period</span>
+    <select id="periodSel" onchange="refreshDashboard()">
+      <option value="monthly">Monthly</option>
+      <option value="quarterly">Quarterly</option>
+      <option value="annual">Annual</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <span class="control-label">View</span>
+    <div class="checkbox-group">
+      <label class="checkbox-item"><input type="checkbox" id="chkActual" checked onchange="refreshDashboard()"> Actual</label>
+      <label class="checkbox-item"><input type="checkbox" id="chkBudget" checked onchange="refreshDashboard()"> Budget</label>
+    </div>
+  </div>
+  <div class="control-group">
+    <span class="control-label">Scope</span>
+    <select id="scopeSel" onchange="refreshDashboard()">
+      <option value="Revenue">Revenue</option>
+      <option value="COGS">COGS</option>
+      <option value="S&M">S&M</option>
+      <option value="G&A">G&A</option>
+      <option value="Profitability">Profitability</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <span class="control-label">Metric</span>
+    <select id="metricSel" onchange="refreshDashboard()">
+      <option value="Total Revenue">Total Revenue</option>
+      <option value="Gross Profit">Gross Profit</option>
+      <option value="EBITDA">EBITDA</option>
+      <option value="EBIT">EBIT</option>
+      <option value="Net Income">Net Income</option>
+      <option value="Gross Margin %">Gross Margin %</option>
+      <option value="EBITDA Margin %">EBITDA Margin %</option>
+      <option value="EBIT Margin %">EBIT Margin %</option>
+      <option value="Net Income Margin %">Net Income Margin %</option>
+    </select>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="kpi-grid" id="kpiGrid"></div>
+  <div class="charts-grid">
+    <div class="chart-card wide">
+      <div class="chart-title">Income Trend</div>
+      <canvas id="trendChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Actual vs Budget</div>
+      <canvas id="avbChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Revenue Structure</div>
+      <canvas id="donutChart"></canvas>
+    </div>
+  </div>
+  <div class="chart-card" style="margin-bottom:18px">
+    <div class="chart-title">Scope Analysis</div>
+    <canvas id="scopeChart"></canvas>
+  </div>
+  <div class="table-card">
+    <div class="table-title">YTD Variance — Actual vs Budget</div>
+    <div id="varianceTable"></div>
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<script>
+// ─── EMBEDDED SAMPLE DATA ────────────────────────────────────────────────────
+// Monthly data for Jan–Sep 2024 (Actual) and Jan–Dec 2024 (Budget)
+// All values in tỷ VND
+const SAMPLE_DATA = {
+  Actual: {
+    months: ['Jan-24','Feb-24','Mar-24','Apr-24','May-24','Jun-24','Jul-24','Aug-24','Sep-24'],
+    "Tổng doanh thu":        [180,165,210,225,240,260,255,270,285],
+    "Sản phẩm 1":            [90, 82, 105,112,120,130,128,135,143],
+    "Sản phẩm 2":            [55, 50, 64, 68, 73, 79, 77, 82, 87],
+    "Sản phẩm 3":            [35, 33, 41, 45, 47, 51, 50, 53, 55],
+    "Tổng giá vốn hàng bán": [108,100,126,135,144,156,153,162,171],
+    "Lợi nhuận gộp":         [72, 65, 84, 90, 96,104,102,108,114],
+    "Chi phí bán hàng":      [18, 17, 21, 22, 24, 26, 26, 27, 28],
+    "Chi phí quản lý":       [14, 13, 16, 17, 18, 19, 19, 20, 21],
+    "EBITDA":                [45, 40, 52, 56, 59, 64, 62, 66, 70],
+    "EBIT":                  [38, 34, 44, 48, 51, 56, 54, 58, 62],
+    "Lãi vay":               [5,  5,  5,  5,  5,  5,  5,  5,  5],
+    "Lợi nhuận sau thuế":    [26, 23, 31, 34, 37, 41, 39, 42, 46]
+  },
+  Budget: {
+    months: ['Jan-24','Feb-24','Mar-24','Apr-24','May-24','Jun-24','Jul-24','Aug-24','Sep-24','Oct-24','Nov-24','Dec-24'],
+    "Tổng doanh thu":        [185,170,215,230,245,265,260,275,290,295,310,325],
+    "Sản phẩm 1":            [93, 85, 108,115,123,133,130,138,145,148,155,163],
+    "Sản phẩm 2":            [57, 52, 66, 70, 74, 81, 79, 84, 89, 91, 96,100],
+    "Sản phẩm 3":            [35, 33, 41, 45, 48, 51, 51, 53, 56, 56, 59, 62],
+    "Tổng giá vốn hàng bán": [111,102,129,138,147,159,156,165,174,177,186,195],
+    "Lợi nhuận gộp":         [74, 68, 86, 92, 98,106,104,110,116,118,124,130],
+    "Chi phí bán hàng":      [19, 17, 22, 23, 25, 27, 26, 28, 29, 30, 31, 33],
+    "Chi phí quản lý":       [15, 14, 17, 18, 19, 20, 20, 21, 22, 22, 23, 24],
+    "EBITDA":                [46, 42, 53, 57, 60, 65, 63, 67, 71, 72, 76, 79],
+    "EBIT":                  [39, 36, 45, 49, 52, 57, 55, 59, 63, 64, 68, 71],
+    "Lãi vay":               [5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5],
+    "Lợi nhuận sau thuế":    [27, 25, 32, 35, 38, 42, 40, 43, 47, 48, 51, 53]
+  }
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let DB = JSON.parse(JSON.stringify(SAMPLE_DATA)); // deep clone
+let charts = {};
+
+// ─── CDN LOADER ───────────────────────────────────────────────────────────────
+function loadScript(urls) {
+  return new Promise((resolve, reject) => {
+    let idx = 0;
+    function tryNext() {
+      if (idx >= urls.length) return reject(new Error('All CDNs failed'));
+      const s = document.createElement('script');
+      s.src = urls[idx++];
+      s.onload = resolve;
+      s.onerror = tryNext;
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
+}
+
+async function loadLibraries() {
+  const chartCDNs = [
+    'https://unpkg.com/chart.js@4.4.3/dist/chart.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js'
+  ];
+  const xlsxCDNs = [
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+  ];
+  const err = document.getElementById('cdnError');
+  try { await loadScript(chartCDNs); } catch(e) {
+    err.style.display='block';
+    err.textContent='❌ Chart.js could not be loaded from any CDN. Please check your internet connection.';
+    return false;
+  }
+  try { await loadScript(xlsxCDNs); } catch(e) {
+    err.style.display='block';
+    err.textContent='❌ SheetJS (xlsx) could not be loaded from any CDN. Excel upload will not work.';
+    // still continue — charts work without it
+  }
+  return true;
+}
+
+// ─── EXCEL UPLOAD ─────────────────────────────────────────────────────────────
+function handleUpload(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const status = document.getElementById('uploadStatus');
+  status.innerHTML = '<span class="spinner"></span>Parsing…';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      if (typeof XLSX === 'undefined') throw new Error('SheetJS not loaded');
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const sheets = wb.SheetNames;
+      if (!sheets.includes('Actual') || !sheets.includes('Budget')) {
+        throw new Error('Workbook must contain "Actual" and "Budget" sheets.');
+      }
+      DB.Actual = parseSheet(wb.Sheets['Actual']);
+      DB.Budget = parseSheet(wb.Sheets['Budget']);
+      status.textContent = '✓ ' + file.name;
+      refreshDashboard();
+    } catch(err) {
+      status.textContent = '⚠ ' + err.message;
+    }
+  };
+  reader.onerror = () => { status.textContent = '⚠ File read error'; };
+  reader.readAsArrayBuffer(file);
+  // reset so re-uploading same filename triggers onchange
+  evt.target.value = '';
+}
+
+function parseSheet(ws) {
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  const result = { months: [] };
+  // find month header row: row where we see date-like values across columns
+  let headerRow = -1;
+  for (let r = range.s.r; r <= Math.min(range.s.r+10, range.e.r); r++) {
+    let dateCount = 0;
+    for (let c = range.s.c+1; c <= range.e.c; c++) {
+      const cell = ws[XLSX.utils.encode_cell({r,c})];
+      if (!cell) continue;
+      const v = cell.v;
+      if (typeof v === 'number' && v > 40000 && v < 50000) dateCount++; // Excel date serial
+      else if (typeof v === 'string' && /\d{4}/.test(v)) dateCount++;
+    }
+    if (dateCount >= 3) { headerRow = r; break; }
+  }
+  if (headerRow === -1) {
+    // fallback: use row 0
+    headerRow = range.s.r;
+  }
+  // collect month labels from header row (skip col 0)
+  const monthCols = [];
+  for (let c = range.s.c+1; c <= range.e.c; c++) {
+    const cell = ws[XLSX.utils.encode_cell({r:headerRow, c})];
+    if (!cell) continue;
+    let label = '';
+    if (typeof cell.v === 'number' && cell.v > 40000) {
+      const d = XLSX.SSF.parse_date_code(cell.v);
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      label = months[d.m-1]+'-'+(d.y%100).toString().padStart(2,'0');
+    } else {
+      label = cell.w || String(cell.v);
+    }
+    monthCols.push({col:c, label});
+    result.months.push(label);
+  }
+
+  // row label aliases
+  const aliases = {
+    'Tổng doanh thu': ['Tổng doanh thu','Total Revenue','Doanh thu'],
+    'Sản phẩm 1': ['Sản phẩm 1','SP1','Product 1'],
+    'Sản phẩm 2': ['Sản phẩm 2','SP2','Product 2'],
+    'Sản phẩm 3': ['Sản phẩm 3','SP3','Product 3'],
+    'Tổng giá vốn hàng bán': ['Tổng giá vốn hàng bán','Giá vốn','COGS'],
+    'Lợi nhuận gộp': ['Lợi nhuận gộp','Gross Profit'],
+    'Chi phí bán hàng': ['Chi phí bán hàng','S&M','Selling'],
+    'Chi phí quản lý': ['Chi phí quản lý','G&A','Admin','Chi phí chung'],
+    'EBITDA': ['EBITDA'],
+    'EBIT': ['EBIT'],
+    'Lãi vay': ['Lãi vay','Interest'],
+    'Lợi nhuận sau thuế': ['Lợi nhuận sau thuế','Net Income','LNST']
+  };
+
+  // parse each row
+  for (let r = headerRow+1; r <= range.e.r; r++) {
+    const labelCell = ws[XLSX.utils.encode_cell({r, c:range.s.c})];
+    if (!labelCell) continue;
+    const rowLabel = (labelCell.v || '').toString().trim();
+    for (const [canonical, alts] of Object.entries(aliases)) {
+      if (alts.some(a => rowLabel.toLowerCase().includes(a.toLowerCase()))) {
+        result[canonical] = monthCols.map(({col}) => {
+          const cell = ws[XLSX.utils.encode_cell({r,c:col})];
+          if (!cell || cell.v === '' || cell.v === null) return 0;
+          return typeof cell.v === 'number' ? cell.v : parseFloat(cell.v) || 0;
+        });
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+// ─── DATA HELPERS ─────────────────────────────────────────────────────────────
+function getRow(sheet, key) {
+  const d = DB[sheet];
+  if (!d || !d[key]) return null;
+  return d[key];
+}
+
+function getMonths(sheet) {
+  return DB[sheet]?.months || [];
+}
+
+function aggMonthly(arr, months) {
+  return { labels: months, values: arr };
+}
+
+function aggQuarterly(arr, months) {
+  const qData = {};
+  months.forEach((m, i) => {
+    const parts = m.split('-');
+    const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(parts[0]);
+    const yr = parts[1] ? '20'+parts[1] : '2024';
+    const q = Math.floor(mon/3)+1;
+    const key = `Q${q} ${yr}`;
+    if (!qData[key]) qData[key] = 0;
+    qData[key] += arr[i] || 0;
+  });
+  return { labels: Object.keys(qData), values: Object.values(qData) };
+}
+
+function aggAnnual(arr, months) {
+  const yData = {};
+  months.forEach((m, i) => {
+    const parts = m.split('-');
+    const yr = parts[1] ? '20'+parts[1] : '2024';
+    if (!yData[yr]) yData[yr] = 0;
+    yData[yr] += arr[i] || 0;
+  });
+  return { labels: Object.keys(yData), values: Object.values(yData) };
+}
+
+function aggregate(arr, months, period) {
+  if (!arr) return { labels: [], values: [] };
+  if (period === 'monthly') return aggMonthly(arr, months);
+  if (period === 'quarterly') return aggQuarterly(arr, months);
+  return aggAnnual(arr, months);
+}
+
+function fmtVal(v, isMargin) {
+  if (isMargin) return (v*100).toFixed(1) + '%';
+  return v.toFixed(1) + ' tỷ';
+}
+
+function fmtChange(cur, prev, isMargin) {
+  if (prev === 0 || prev === undefined) return { text:'N/A', cls:'neu' };
+  const diff = cur - prev;
+  const pct = (diff/Math.abs(prev)*100).toFixed(1);
+  const sign = diff >= 0 ? '▲' : '▼';
+  const cls = diff >= 0 ? 'pos' : 'neg';
+  const valStr = isMargin ? (diff*100).toFixed(1)+'pp' : diff.toFixed(1)+' tỷ';
+  return { text: `${sign} ${valStr} (${Math.abs(pct)}%)`, cls };
+}
+
+function getMetricRow(metricKey) {
+  const map = {
+    'Total Revenue': 'Tổng doanh thu',
+    'Gross Profit': 'Lợi nhuận gộp',
+    'EBITDA': 'EBITDA',
+    'EBIT': 'EBIT',
+    'Net Income': 'Lợi nhuận sau thuế',
+    'Gross Margin %': null,
+    'EBITDA Margin %': null,
+    'EBIT Margin %': null,
+    'Net Income Margin %': null
+  };
+  return map[metricKey];
+}
+
+function computeMetricSeries(sheet, metricKey, months) {
+  const isMargin = metricKey.includes('%');
+  if (!isMargin) {
+    const row = getMetricRow(metricKey);
+    return getRow(sheet, row) || months.map(()=>0);
+  }
+  const rev = getRow(sheet, 'Tổng doanh thu') || months.map(()=>0);
+  const numeratorMap = {
+    'Gross Margin %': 'Lợi nhuận gộp',
+    'EBITDA Margin %': 'EBITDA',
+    'EBIT Margin %': 'EBIT',
+    'Net Income Margin %': 'Lợi nhuận sau thuế'
+  };
+  const numRow = getRow(sheet, numeratorMap[metricKey]) || months.map(()=>0);
+  return numRow.map((v,i) => rev[i] ? v/rev[i] : 0);
+}
+
+// ─── KPI CARDS ────────────────────────────────────────────────────────────────
+function buildKPIs(period) {
+  const actMonths = getMonths('Actual');
+  const n = actMonths.length;
+  if (n === 0) { document.getElementById('kpiGrid').innerHTML='<div style="color:var(--muted)">No data</div>'; return; }
+
+  function getAgg(sheet, row) {
+    const months = getMonths(sheet);
+    const arr = getRow(sheet, row);
+    if (!arr) return [];
+    return aggregate(arr, months, period).values;
+  }
+
+  const kpis = [
+    {label:'Total Revenue', row:'Tổng doanh thu', isMargin:false},
+    {label:'Gross Profit', row:'Lợi nhuận gộp', isMargin:false},
+    {label:'EBITDA', row:'EBITDA', isMargin:false},
+    {label:'EBIT', row:'EBIT', isMargin:false},
+    {label:'Net Income', row:'Lợi nhuận sau thuế', isMargin:false},
+    {label:'Gross Margin', isMargin:true, num:'Lợi nhuận gộp'},
+    {label:'EBITDA Margin', isMargin:true, num:'EBITDA'},
+    {label:'EBIT Margin', isMargin:true, num:'EBIT'},
+    {label:'Net Margin', isMargin:true, num:'Lợi nhuận sau thuế'}
+  ];
+
+  const html = kpis.map(k => {
+    let values;
+    if (!k.isMargin) {
+      values = getAgg('Actual', k.row);
+    } else {
+      const rev = getAgg('Actual', 'Tổng doanh thu');
+      const num = getAgg('Actual', k.num);
+      values = num.map((v,i) => rev[i] ? v/rev[i] : 0);
+    }
+    if (!values || values.length === 0) {
+      return `<div class="kpi-card"><div class="kpi-label">${k.label}</div><div class="kpi-value" style="color:var(--muted);font-size:14px">N/A</div></div>`;
+    }
+    const cur = values[values.length-1];
+    const prev = values.length>1 ? values[values.length-2] : undefined;
+    const { text, cls } = fmtChange(cur, prev, k.isMargin);
+    return `
+    <div class="kpi-card">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${fmtVal(cur, k.isMargin)}</div>
+      <div class="kpi-change ${cls}">${text}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('kpiGrid').innerHTML = html;
+}
+
+// ─── CHARTS ───────────────────────────────────────────────────────────────────
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function buildTrendChart(period, metricKey, showActual, showBudget) {
+  destroyChart('trend');
+  const isMargin = metricKey.includes('%');
+  const actMonths = getMonths('Actual');
+  const budMonths = getMonths('Budget');
+
+  const actSeries = computeMetricSeries('Actual', metricKey, actMonths);
+  const budSeries = computeMetricSeries('Budget', metricKey, budMonths);
+
+  const actAgg = aggregate(actSeries, actMonths, period);
+  const budAgg = aggregate(budSeries, budMonths, period);
+
+  // merge labels
+  const allLabels = [...new Set([...actAgg.labels, ...budAgg.labels])];
+
+  const datasets = [];
+  if (showActual) {
+    datasets.push({
+      label:'Actual',
+      data: allLabels.map(l => { const i = actAgg.labels.indexOf(l); return i>=0 ? actAgg.values[i] : null; }),
+      borderColor:'#00d4ff', backgroundColor:'rgba(0,212,255,0.08)',
+      fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#00d4ff'
+    });
+  }
+  if (showBudget) {
+    datasets.push({
+      label:'Budget',
+      data: allLabels.map(l => { const i = budAgg.labels.indexOf(l); return i>=0 ? budAgg.values[i] : null; }),
+      borderColor:'#7c3aed', backgroundColor:'rgba(124,58,237,0.05)',
+      fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#7c3aed',
+      borderDash: [6,3]
+    });
+  }
+
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  charts.trend = new Chart(ctx, {
+    type:'line',
+    data: { labels: allLabels, datasets },
+    options: chartOpts(isMargin ? v => (v*100).toFixed(1)+'%' : v => v.toFixed(1)+' tỷ')
+  });
+}
+
+function buildAvbChart(period, metricKey) {
+  destroyChart('avb');
+  const isMargin = metricKey.includes('%');
+  const actMonths = getMonths('Actual');
+  const budMonths = getMonths('Budget');
+
+  const actSeries = computeMetricSeries('Actual', metricKey, actMonths);
+  const budSeries = computeMetricSeries('Budget', metricKey, budMonths);
+
+  const actAgg = aggregate(actSeries, actMonths, period);
+  const budAgg = aggregate(budSeries, budMonths, period);
+
+  const allLabels = [...new Set([...actAgg.labels, ...budAgg.labels])];
+
+  const ctx = document.getElementById('avbChart').getContext('2d');
+  charts.avb = new Chart(ctx, {
+    type:'bar',
+    data: {
+      labels: allLabels,
+      datasets: [
+        {
+          label:'Actual',
+          data: allLabels.map(l => { const i=actAgg.labels.indexOf(l); return i>=0?actAgg.values[i]:null; }),
+          backgroundColor:'rgba(0,212,255,0.7)', borderRadius:4
+        },
+        {
+          label:'Budget',
+          data: allLabels.map(l => { const i=budAgg.labels.indexOf(l); return i>=0?budAgg.values[i]:null; }),
+          backgroundColor:'rgba(124,58,237,0.6)', borderRadius:4
+        }
+      ]
+    },
+    options: chartOpts(isMargin ? v=>(v*100).toFixed(1)+'%' : v=>v.toFixed(1)+' tỷ')
+  });
+}
+
+function buildDonutChart() {
+  destroyChart('donut');
+  const actMonths = getMonths('Actual');
+  const n = actMonths.length;
+  if (n===0) return;
+
+  const sp1 = getRow('Actual','Sản phẩm 1');
+  const sp2 = getRow('Actual','Sản phẩm 2');
+  const sp3 = getRow('Actual','Sản phẩm 3');
+  const sum = a => a ? a.reduce((s,v)=>s+v,0) : 0;
+
+  const ctx = document.getElementById('donutChart').getContext('2d');
+  charts.donut = new Chart(ctx, {
+    type:'doughnut',
+    data: {
+      labels: ['Sản phẩm 1','Sản phẩm 2','Sản phẩm 3'],
+      datasets: [{
+        data: [sum(sp1), sum(sp2), sum(sp3)],
+        backgroundColor: ['#00d4ff','#7c3aed','#10d679'],
+        borderColor: '#080c14', borderWidth: 2,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive:true,
+      cutout:'65%',
+      plugins: {
+        legend: { labels:{ color:'#94a3b8', font:{family:'DM Mono'}, boxWidth:12 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw.toFixed(1)} tỷ` } }
+      }
+    }
+  });
+}
+
+function buildScopeChart(period, scopeKey) {
+  destroyChart('scope');
+  const scopeMap = {
+    'Revenue': 'Tổng doanh thu',
+    'COGS': 'Tổng giá vốn hàng bán',
+    'S&M': 'Chi phí bán hàng',
+    'G&A': 'Chi phí quản lý',
+    'Profitability': 'Lợi nhuận sau thuế'
+  };
+  const row = scopeMap[scopeKey] || 'Tổng doanh thu';
+
+  const actMonths = getMonths('Actual');
+  const budMonths = getMonths('Budget');
+  const actArr = getRow('Actual', row) || actMonths.map(()=>0);
+  const budArr = getRow('Budget', row) || budMonths.map(()=>0);
+
+  const actAgg = aggregate(actArr, actMonths, period);
+  const budAgg = aggregate(budArr, budMonths, period);
+  const allLabels = [...new Set([...actAgg.labels, ...budAgg.labels])];
+
+  const ctx = document.getElementById('scopeChart').getContext('2d');
+  charts.scope = new Chart(ctx, {
+    type:'line',
+    data: {
+      labels: allLabels,
+      datasets: [
+        {
+          label:`${scopeKey} – Actual`,
+          data: allLabels.map(l=>{ const i=actAgg.labels.indexOf(l); return i>=0?actAgg.values[i]:null; }),
+          borderColor:'#10d679', backgroundColor:'rgba(16,214,121,0.07)',
+          fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:'#10d679'
+        },
+        {
+          label:`${scopeKey} – Budget`,
+          data: allLabels.map(l=>{ const i=budAgg.labels.indexOf(l); return i>=0?budAgg.values[i]:null; }),
+          borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,0.05)',
+          fill:false, tension:0.3, pointRadius:3, pointBackgroundColor:'#fbbf24',
+          borderDash:[5,3]
+        }
+      ]
+    },
+    options: chartOpts(v=>v.toFixed(1)+' tỷ')
+  });
+}
+
+function chartOpts(tickFmt) {
+  return {
+    responsive:true,
+    interaction:{ mode:'index', intersect:false },
+    plugins:{
+      legend:{ labels:{ color:'#94a3b8', font:{family:'DM Mono',size:11}, boxWidth:12 } },
+      tooltip:{
+        backgroundColor:'#0d1320', borderColor:'#1e2a3a', borderWidth:1,
+        titleColor:'#e2e8f0', bodyColor:'#94a3b8',
+        callbacks:{ label: ctx=>`  ${ctx.dataset.label}: ${tickFmt(ctx.raw)}` }
+      }
+    },
+    scales:{
+      x:{ grid:{color:'rgba(30,42,58,0.5)'}, ticks:{color:'#64748b',font:{family:'DM Mono',size:10}} },
+      y:{ grid:{color:'rgba(30,42,58,0.5)'}, ticks:{color:'#64748b',font:{family:'DM Mono',size:10}, callback: tickFmt} }
+    }
+  };
+}
+
+// ─── VARIANCE TABLE ────────────────────────────────────────────────────────────
+function buildVarianceTable() {
+  const actMonths = getMonths('Actual');
+  const budMonths = getMonths('Budget');
+  // find latest common month index
+  const common = actMonths.filter(m => budMonths.includes(m));
+  const latestCommon = common[common.length-1];
+  if (!latestCommon) {
+    document.getElementById('varianceTable').innerHTML='<div style="color:var(--muted);font-size:12px">No common months found.</div>';
+    return;
+  }
+  const aIdx = actMonths.indexOf(latestCommon);
+  const bIdx = budMonths.indexOf(latestCommon);
+
+  const rows = [
+    {label:'Total Revenue', row:'Tổng doanh thu', isCost:false},
+    {label:'COGS', row:'Tổng giá vốn hàng bán', isCost:true},
+    {label:'Gross Profit', row:'Lợi nhuận gộp', isCost:false},
+    {label:'S&M Expense', row:'Chi phí bán hàng', isCost:true},
+    {label:'G&A Expense', row:'Chi phí quản lý', isCost:true},
+    {label:'EBITDA', row:'EBITDA', isCost:false},
+    {label:'EBIT', row:'EBIT', isCost:false},
+    {label:'Interest', row:'Lãi vay', isCost:true},
+    {label:'Net Income', row:'Lợi nhuận sau thuế', isCost:false},
+  ];
+
+  const tableRows = rows.map(r => {
+    const actArr = getRow('Actual', r.row);
+    const budArr = getRow('Budget', r.row);
+    if (!actArr || !budArr) {
+      return `<tr><td>${r.label}</td><td colspan="4" style="color:var(--muted)">Data not available</td></tr>`;
+    }
+    // YTD sums up to latest common month
+    const actYTD = actArr.slice(0, aIdx+1).reduce((s,v)=>s+v,0);
+    const budYTD = budArr.slice(0, bIdx+1).reduce((s,v)=>s+v,0);
+    const varVal = actYTD - budYTD;
+    const varPct = budYTD !== 0 ? (varVal/Math.abs(budYTD)*100) : 0;
+    // favorable logic
+    const favorable = r.isCost ? varVal <= 0 : varVal >= 0;
+    const varClass = favorable ? 'var-pos' : 'var-neg';
+    const sign = varVal >= 0 ? '+' : '';
+    return `<tr>
+      <td>${r.label}</td>
+      <td>${actYTD.toFixed(1)}</td>
+      <td>${budYTD.toFixed(1)}</td>
+      <td class="${varClass}">${sign}${varVal.toFixed(1)}</td>
+      <td class="${varClass}">${sign}${varPct.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('varianceTable').innerHTML = `
+  <div style="font-size:11px;color:var(--muted);margin-bottom:10px">YTD through ${latestCommon} · tỷ VND</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th>Actual YTD</th>
+        <th>Budget YTD</th>
+        <th>Variance (tỷ)</th>
+        <th>Variance %</th>
+      </tr>
+    </thead>
+    <tbody>${tableRows}</tbody>
+  </table>`;
+}
+
+// ─── REFRESH ──────────────────────────────────────────────────────────────────
+function refreshDashboard() {
+  const period = document.getElementById('periodSel').value;
+  const metricKey = document.getElementById('metricSel').value;
+  const scopeKey = document.getElementById('scopeSel').value;
+  const showActual = document.getElementById('chkActual').checked;
+  const showBudget = document.getElementById('chkBudget').checked;
+
+  buildKPIs(period);
+  buildTrendChart(period, metricKey, showActual, showBudget);
+  buildAvbChart(period, metricKey);
+  buildDonutChart();
+  buildScopeChart(period, scopeKey);
+  buildVarianceTable();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+(async function init() {
+  const ok = await loadLibraries();
+  if (ok) refreshDashboard();
+})();
+</script>
+</body>
+</html>
