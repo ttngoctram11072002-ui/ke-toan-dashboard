@@ -1,0 +1,2226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Financial Dashboard</title>
+  <style>
+    :root {
+      --bg-1: #07111f;
+      --bg-2: #0f1d32;
+      --panel: rgba(12, 22, 39, 0.78);
+      --panel-strong: rgba(16, 29, 52, 0.96);
+      --border: rgba(155, 181, 224, 0.18);
+      --border-strong: rgba(125, 171, 255, 0.28);
+      --text: #edf3ff;
+      --muted: #9fb2d3;
+      --soft: #d3ddf6;
+      --accent: #5ba7ff;
+      --accent-2: #7d6bff;
+      --accent-3: #23d6c6;
+      --good: #39d98a;
+      --bad: #ff6b7a;
+      --warn: #ffc857;
+      --shadow: 0 24px 64px rgba(0, 0, 0, 0.32);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --grid-gap: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top right, rgba(91, 167, 255, 0.16), transparent 24%),
+        radial-gradient(circle at left center, rgba(125, 107, 255, 0.12), transparent 28%),
+        linear-gradient(160deg, var(--bg-1) 0%, #081321 30%, var(--bg-2) 100%);
+      color: var(--text);
+      font-family: Inter, Manrope, "Be Vietnam Pro", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent 20%, transparent 80%, rgba(255,255,255,0.02));
+      mix-blend-mode: screen;
+      opacity: 0.55;
+    }
+
+    .app-shell {
+      position: relative;
+      max-width: 1560px;
+      margin: 0 auto;
+      padding: 32px 24px 40px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 26px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 10px;
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-3);
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 46px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      margin: 12px 0 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .status-stack {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+      max-width: 420px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(12, 24, 40, 0.72);
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      backdrop-filter: blur(14px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .pill::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(91, 167, 255, 0.12);
+      flex: 0 0 auto;
+    }
+
+    .pill.pending::before { background: var(--warn); box-shadow: 0 0 0 4px rgba(255, 200, 87, 0.12); }
+    .pill.good::before { background: var(--good); box-shadow: 0 0 0 4px rgba(57, 217, 138, 0.12); }
+    .pill.bad::before { background: var(--bad); box-shadow: 0 0 0 4px rgba(255, 107, 122, 0.16); }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(320px, 1.15fr) minmax(320px, 1.85fr);
+      gap: var(--grid-gap);
+      margin-bottom: 22px;
+    }
+
+    .card,
+    .panel,
+    .upload-card,
+    .control-card {
+      position: relative;
+      background: linear-gradient(180deg, rgba(20, 32, 56, 0.9) 0%, rgba(11, 21, 38, 0.82) 100%);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.04);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      backdrop-filter: blur(22px);
+    }
+
+    .upload-card,
+    .control-card,
+    .panel {
+      padding: 22px;
+    }
+
+    .upload-card::after,
+    .control-card::after,
+    .panel::after,
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent 28%, transparent 68%, rgba(91, 167, 255, 0.06));
+      opacity: 0.65;
+    }
+
+    .upload-title,
+    .panel-title,
+    .control-title {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-size: 16px;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .upload-note,
+    .panel-subtitle,
+    .control-note {
+      position: relative;
+      z-index: 1;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .upload-zone {
+      position: relative;
+      z-index: 1;
+      margin-top: 18px;
+      border: 1px dashed rgba(123, 168, 255, 0.38);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(7, 15, 28, 0.72), rgba(14, 26, 47, 0.62));
+      padding: 18px;
+    }
+
+    .upload-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .button-like {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(125, 171, 255, 0.25);
+      background: linear-gradient(135deg, rgba(91, 167, 255, 0.2), rgba(125, 107, 255, 0.24));
+      color: var(--text);
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      box-shadow: 0 16px 26px rgba(38, 95, 185, 0.22);
+    }
+
+    .button-like:hover {
+      transform: translateY(-1px);
+      border-color: rgba(148, 188, 255, 0.4);
+      box-shadow: 0 20px 30px rgba(38, 95, 185, 0.26);
+    }
+
+    .button-like:active { transform: translateY(0); }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .upload-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      color: var(--soft);
+      font-size: 12px;
+    }
+
+    .upload-meta strong { color: var(--text); }
+
+    .control-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap: 16px;
+      align-items: end;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .control-group label,
+    .checkbox-group-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    select {
+      width: 100%;
+      min-height: 46px;
+      appearance: none;
+      border-radius: 14px;
+      border: 1px solid rgba(123, 151, 196, 0.2);
+      background:
+        linear-gradient(180deg, rgba(10, 19, 34, 0.92), rgba(18, 29, 51, 0.92)),
+        radial-gradient(circle at top right, rgba(91, 167, 255, 0.13), transparent 35%);
+      color: var(--text);
+      padding: 0 14px;
+      font-size: 14px;
+      font-weight: 650;
+      outline: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    select:focus {
+      border-color: rgba(91, 167, 255, 0.55);
+      box-shadow: 0 0 0 4px rgba(91, 167, 255, 0.12);
+    }
+
+    .checkbox-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      min-height: 46px;
+      align-items: center;
+    }
+
+    .check-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(7, 15, 28, 0.55);
+      border: 1px solid rgba(123, 151, 196, 0.18);
+      color: var(--soft);
+      font-size: 14px;
+      font-weight: 650;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .check-pill input {
+      accent-color: var(--accent);
+      width: 16px;
+      height: 16px;
+      margin: 0;
+    }
+
+    .notice {
+      display: none;
+      align-items: flex-start;
+      gap: 12px;
+      margin: 0 0 18px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 200, 87, 0.22);
+      background: rgba(53, 41, 16, 0.38);
+      color: #ffe4a6;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .notice.show { display: flex; }
+    .notice.error {
+      border-color: rgba(255, 107, 122, 0.32);
+      background: rgba(64, 17, 28, 0.4);
+      color: #ffc1c9;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(9, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      padding: 18px 18px 16px;
+      min-height: 162px;
+    }
+
+    .card .meta,
+    .card .source {
+      position: relative;
+      z-index: 1;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .card .source {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.04em;
+      font-size: 11px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(123, 151, 196, 0.15);
+      background: rgba(255,255,255,0.03);
+      margin-bottom: 12px;
+    }
+
+    .card h3 {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      color: var(--soft);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.45;
+      min-height: 36px;
+    }
+
+    .card .value {
+      position: relative;
+      z-index: 1;
+      margin: 18px 0 10px;
+      font-size: clamp(24px, 1.9vw, 34px);
+      line-height: 1.04;
+      letter-spacing: -0.05em;
+      font-weight: 800;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .delta-row {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .delta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: -0.01em;
+      border: 1px solid transparent;
+    }
+
+    .delta-badge.good {
+      color: #bdf0d2;
+      background: rgba(57, 217, 138, 0.12);
+      border-color: rgba(57, 217, 138, 0.22);
+    }
+
+    .delta-badge.bad {
+      color: #ffc6cd;
+      background: rgba(255, 107, 122, 0.12);
+      border-color: rgba(255, 107, 122, 0.22);
+    }
+
+    .delta-badge.flat {
+      color: #fff0c5;
+      background: rgba(255, 200, 87, 0.12);
+      border-color: rgba(255, 200, 87, 0.22);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--grid-gap);
+      margin-bottom: 24px;
+    }
+
+    .panel-head {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .panel-title-wrap {
+      display: grid;
+      gap: 6px;
+    }
+
+    .panel-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #d6e3ff;
+      background: rgba(91, 167, 255, 0.08);
+      border: 1px solid rgba(91, 167, 255, 0.16);
+    }
+
+    .chart-shell {
+      position: relative;
+      z-index: 1;
+      min-height: 320px;
+    }
+
+    .chart-shell canvas {
+      width: 100% !important;
+      height: 320px !important;
+    }
+
+    .chart-empty {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-height: 320px;
+      border-radius: 18px;
+      border: 1px dashed rgba(123, 151, 196, 0.22);
+      background: rgba(7, 15, 28, 0.45);
+      color: var(--muted);
+      text-align: center;
+      padding: 20px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .chart-empty.show { display: flex; }
+    .chart-empty.error {
+      color: #ffc1c9;
+      border-color: rgba(255, 107, 122, 0.3);
+      background: rgba(64, 17, 28, 0.25);
+    }
+
+    .table-wrap {
+      position: relative;
+      z-index: 1;
+      overflow: auto;
+      border-radius: 18px;
+      border: 1px solid rgba(123, 151, 196, 0.14);
+      background: rgba(7, 15, 28, 0.55);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 820px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: rgba(11, 22, 40, 0.94);
+      color: #d8e5ff;
+      text-align: left;
+      padding: 14px 16px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 800;
+      border-bottom: 1px solid rgba(123, 151, 196, 0.14);
+      backdrop-filter: blur(14px);
+      z-index: 1;
+    }
+
+    tbody td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(123, 151, 196, 0.1);
+      font-size: 14px;
+      color: var(--soft);
+    }
+
+    tbody tr:nth-child(odd) td { background: rgba(255, 255, 255, 0.015); }
+    tbody tr:hover td { background: rgba(91, 167, 255, 0.05); }
+
+    .text-right { text-align: right; }
+
+    .assessment-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 94px;
+      padding: 8px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      border: 1px solid transparent;
+    }
+
+    .assessment-chip.good {
+      color: #bdf0d2;
+      background: rgba(57, 217, 138, 0.12);
+      border-color: rgba(57, 217, 138, 0.22);
+    }
+
+    .assessment-chip.bad {
+      color: #ffc6cd;
+      background: rgba(255, 107, 122, 0.12);
+      border-color: rgba(255, 107, 122, 0.22);
+    }
+
+    .assessment-chip.flat {
+      color: #fff0c5;
+      background: rgba(255, 200, 87, 0.12);
+      border-color: rgba(255, 200, 87, 0.22);
+    }
+
+    .insights-panel ul {
+      position: relative;
+      z-index: 1;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .insights-panel li {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 16px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(123, 151, 196, 0.14);
+      background: rgba(7, 15, 28, 0.52);
+      color: var(--soft);
+      line-height: 1.68;
+      font-size: 14px;
+    }
+
+    .insights-panel li::before {
+      content: "•";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(91, 167, 255, 0.22), rgba(125, 107, 255, 0.18));
+      color: #f2f7ff;
+      font-size: 22px;
+      line-height: 1;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .footnote {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 1380px) {
+      .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .hero { grid-template-columns: 1fr; }
+      .control-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+    }
+
+    @media (max-width: 900px) {
+      .topbar { flex-direction: column; }
+      .status-stack { justify-content: flex-start; }
+      .charts-grid { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 620px) {
+      .app-shell { padding: 24px 16px 32px; }
+      .control-grid { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: 1fr; }
+      .upload-actions { flex-direction: column; align-items: stretch; }
+      .button-like { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Executive Finance Console</p>
+        <h1>Financial Performance Dashboard</h1>
+        <p class="subtitle">
+          Premium browser-based KPI, variance, and insights dashboard for <strong>Actual</strong> vs <strong>Budget</strong> workbooks.
+          Upload or re-upload any compatible Excel file and every card, chart, YTD variance, and insight will refresh instantly.
+        </p>
+      </div>
+      <div class="status-stack">
+        <div id="libraryStatus" class="pill pending">Loading Chart.js and SheetJS…</div>
+        <div id="dataStatus" class="pill">Embedded starter data loaded</div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <article class="upload-card">
+        <h2 class="upload-title">Excel Upload</h2>
+        <p class="upload-note">
+          Supports <strong>.xlsx</strong> and <strong>.xls</strong> files with two required sheets: <strong>Actual</strong> and <strong>Budget</strong>.
+          The dashboard does not rely on filename and will refresh even when the same file name is uploaded again after content changes.
+        </p>
+        <div class="upload-zone">
+          <div class="upload-actions">
+            <label class="button-like" for="excelUpload">Select workbook</label>
+            <div class="pill" id="uploadStatus">Ready for upload</div>
+            <input id="excelUpload" type="file" accept=".xlsx,.xls" />
+          </div>
+          <div class="upload-meta">
+            <span><strong>Sheets:</strong> Actual, Budget</span>
+            <span><strong>Refresh:</strong> automatic on each upload / re-upload</span>
+            <span><strong>Unit:</strong> tỷ VND</span>
+          </div>
+        </div>
+        <div class="footnote" id="workbookSummary">
+          Starter view uses embedded sample data until a replacement workbook is uploaded.
+        </div>
+      </article>
+
+      <article class="control-card">
+        <div class="panel-head" style="margin-bottom:16px;">
+          <div class="panel-title-wrap">
+            <h2 class="control-title">Interactive Controls</h2>
+            <p class="control-note">Every filter change updates KPIs, charts, latest shared month YTD variance, and the Insights section.</p>
+          </div>
+        </div>
+        <div class="control-grid">
+          <div class="control-group">
+            <label for="periodSelect">Period</label>
+            <select id="periodSelect">
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="annual">Annual</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="metricSelect">Metric</label>
+            <select id="metricSelect"></select>
+          </div>
+          <div class="control-group">
+            <label for="scopeSelect">Scope</label>
+            <select id="scopeSelect"></select>
+          </div>
+          <div class="control-group">
+            <div class="checkbox-group-title">View</div>
+            <div class="checkbox-row">
+              <label class="check-pill"><input id="actualToggle" type="checkbox" checked /> Actual</label>
+              <label class="check-pill"><input id="budgetToggle" type="checkbox" checked /> Budget</label>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <div id="validationMessage" class="notice"></div>
+    <div id="fatalMessage" class="notice error"></div>
+
+    <section class="kpi-grid" id="kpiGrid"></section>
+
+    <section class="charts-grid">
+      <article class="panel">
+        <div class="panel-head">
+          <div class="panel-title-wrap">
+            <span class="panel-tag">Line Chart</span>
+            <h2 class="panel-title">Income Trend by Period</h2>
+            <p class="panel-subtitle">Selected metric over Monthly, Quarterly, or Annual view.</p>
+          </div>
+        </div>
+        <div class="chart-shell">
+          <canvas id="incomeTrendChart"></canvas>
+          <div id="incomeTrendEmpty" class="chart-empty"></div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div class="panel-title-wrap">
+            <span class="panel-tag">Bar Chart</span>
+            <h2 class="panel-title">Actual vs Budget Comparison</h2>
+            <p class="panel-subtitle">Side-by-side view for the selected metric across the latest periods.</p>
+          </div>
+        </div>
+        <div class="chart-shell">
+          <canvas id="comparisonChart"></canvas>
+          <div id="comparisonEmpty" class="chart-empty"></div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div class="panel-title-wrap">
+            <span class="panel-tag">Doughnut</span>
+            <h2 class="panel-title">Revenue Structure by Product Lines</h2>
+            <p class="panel-subtitle">Latest selected period using Sản phẩm 1, Sản phẩm 2, and Sản phẩm 3.</p>
+          </div>
+        </div>
+        <div class="chart-shell">
+          <canvas id="revenueStructureChart"></canvas>
+          <div id="revenueStructureEmpty" class="chart-empty"></div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div class="panel-title-wrap">
+            <span class="panel-tag">Area / Line</span>
+            <h2 class="panel-title">Scope Analysis</h2>
+            <p class="panel-subtitle">Tracks Revenue, COGS, S&amp;M, G&amp;A, or Profitability based on the selected scope.</p>
+          </div>
+        </div>
+        <div class="chart-shell">
+          <canvas id="scopeAnalysisChart"></canvas>
+          <div id="scopeAnalysisEmpty" class="chart-empty"></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel" style="margin-bottom:24px;">
+      <div class="panel-head">
+        <div class="panel-title-wrap">
+          <span class="panel-tag">Variance Analysis</span>
+          <h2 class="panel-title">Latest Shared Month YTD Actual vs Budget</h2>
+          <p class="panel-subtitle" id="varianceSubtitle">Aligned to the latest month available in both Actual and Budget.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th class="text-right">Actual</th>
+              <th class="text-right">Budget</th>
+              <th class="text-right">Variance</th>
+              <th class="text-right">Variance %</th>
+              <th class="text-right">Assessment</th>
+            </tr>
+          </thead>
+          <tbody id="varianceTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel insights-panel">
+      <div class="panel-head">
+        <div class="panel-title-wrap">
+          <span class="panel-tag">Insights</span>
+          <h2 class="panel-title">Nhận xét</h2>
+          <p class="panel-subtitle">Automatically refreshed observations based on the uploaded workbook and the active dashboard filters.</p>
+        </div>
+      </div>
+      <ul id="insightsList"></ul>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const KPI_DEFS = [
+        { id: "revenue", label: "Total Revenue" },
+        { id: "grossProfit", label: "Gross Profit" },
+        { id: "ebitda", label: "EBITDA" },
+        { id: "ebit", label: "EBIT" },
+        { id: "netIncome", label: "Net Income" },
+        { id: "grossMargin", label: "Gross Margin" },
+        { id: "ebitdaMargin", label: "EBITDA Margin" },
+        { id: "ebitMargin", label: "EBIT Margin" },
+        { id: "netIncomeMargin", label: "Net Income Margin" }
+      ];
+
+      const DIRECT_ROW_METRICS = [
+        { id: "revenue", label: "Total Revenue", type: "value", aliases: ["tong doanh thu", "doanh thu thuan", "tong doanh thu thuan"] },
+        { id: "grossProfit", label: "Gross Profit", type: "value", aliases: ["loi nhuan gop"] },
+        { id: "ebitda", label: "EBITDA", type: "value", aliases: ["ebitda"] },
+        { id: "ebit", label: "EBIT", type: "value", aliases: ["ebit"] },
+        { id: "netIncome", label: "Net Income", type: "value", aliases: ["loi nhuan sau thue"] },
+        { id: "cogs", label: "COGS", type: "cost", aliases: ["tong gia von hang ban", "gia von hang ban"] },
+        { id: "sm", label: "S&M", type: "cost", aliases: ["chi phi ban hang"] },
+        { id: "ga", label: "G&A", type: "cost", aliases: ["chi phi quan ly", "chi phi quan ly doanh nghiep"] },
+        { id: "interest", label: "Interest", type: "cost", aliases: ["lai vay", "chi phi lai vay"] },
+        { id: "product1", label: "Sản phẩm 1", type: "value", aliases: ["san pham 1"] },
+        { id: "product2", label: "Sản phẩm 2", type: "value", aliases: ["san pham 2"] },
+        { id: "product3", label: "Sản phẩm 3", type: "value", aliases: ["san pham 3"] }
+      ];
+
+      const METRIC_OPTIONS = [
+        { id: "revenue", label: "Total Revenue", type: "value" },
+        { id: "grossProfit", label: "Gross Profit", type: "value" },
+        { id: "ebitda", label: "EBITDA", type: "value" },
+        { id: "ebit", label: "EBIT", type: "value" },
+        { id: "netIncome", label: "Net Income", type: "value" },
+        { id: "grossMargin", label: "Gross Margin %", type: "margin" },
+        { id: "ebitdaMargin", label: "EBITDA Margin %", type: "margin" },
+        { id: "ebitMargin", label: "EBIT Margin %", type: "margin" },
+        { id: "netIncomeMargin", label: "Net Income Margin %", type: "margin" }
+      ];
+
+      const SCOPE_OPTIONS = [
+        { value: "Revenue", label: "Revenue" },
+        { value: "COGS", label: "COGS" },
+        { value: "S&M", label: "S&M" },
+        { value: "G&A", label: "G&A" },
+        { value: "Profitability", label: "Profitability" }
+      ];
+
+      const VARIANCE_ROWS = [
+        { id: "revenue", label: "Total Revenue", type: "value" },
+        { id: "cogs", label: "COGS", type: "cost" },
+        { id: "grossProfit", label: "Gross Profit", type: "value" },
+        { id: "sm", label: "S&M", type: "cost" },
+        { id: "ga", label: "G&A", type: "cost" },
+        { id: "ebitda", label: "EBITDA", type: "value" },
+        { id: "ebit", label: "EBIT", type: "value" },
+        { id: "netIncome", label: "Net Income", type: "value" },
+        { id: "grossMargin", label: "Gross Margin", type: "margin" },
+        { id: "ebitdaMargin", label: "EBITDA Margin", type: "margin" },
+        { id: "ebitMargin", label: "EBIT Margin", type: "margin" },
+        { id: "netIncomeMargin", label: "Net Income Margin", type: "margin" }
+      ];
+
+      const state = {
+        controls: {
+          period: "monthly",
+          metricId: "revenue",
+          scope: "Revenue",
+          showActual: true,
+          showBudget: true
+        },
+        libraries: {
+          chart: false,
+          xlsx: false
+        },
+        charts: {
+          incomeTrend: null,
+          comparison: null,
+          revenueStructure: null,
+          scopeAnalysis: null
+        },
+        data: null,
+        sourceLabel: "Embedded starter data",
+        validationMessage: "",
+        fatalMessage: ""
+      };
+
+      const dom = {};
+
+      function cacheDom() {
+        dom.libraryStatus = document.getElementById("libraryStatus");
+        dom.dataStatus = document.getElementById("dataStatus");
+        dom.uploadStatus = document.getElementById("uploadStatus");
+        dom.workbookSummary = document.getElementById("workbookSummary");
+        dom.validationMessage = document.getElementById("validationMessage");
+        dom.fatalMessage = document.getElementById("fatalMessage");
+        dom.excelUpload = document.getElementById("excelUpload");
+        dom.periodSelect = document.getElementById("periodSelect");
+        dom.metricSelect = document.getElementById("metricSelect");
+        dom.scopeSelect = document.getElementById("scopeSelect");
+        dom.actualToggle = document.getElementById("actualToggle");
+        dom.budgetToggle = document.getElementById("budgetToggle");
+        dom.kpiGrid = document.getElementById("kpiGrid");
+        dom.varianceSubtitle = document.getElementById("varianceSubtitle");
+        dom.varianceTableBody = document.getElementById("varianceTableBody");
+        dom.insightsList = document.getElementById("insightsList");
+      }
+
+      function populateSelectors() {
+        dom.metricSelect.innerHTML = METRIC_OPTIONS.map(function (option) {
+          return '<option value="' + option.id + '">' + option.label + '</option>';
+        }).join("");
+
+        dom.scopeSelect.innerHTML = SCOPE_OPTIONS.map(function (option) {
+          return '<option value="' + option.value + '">' + option.label + '</option>';
+        }).join("");
+
+        dom.metricSelect.value = state.controls.metricId;
+        dom.scopeSelect.value = state.controls.scope;
+      }
+
+      function updateNotice(element, message, isError) {
+        element.textContent = message || "";
+        element.classList.toggle("show", Boolean(message));
+        element.classList.toggle("error", Boolean(isError));
+      }
+
+      function setValidationMessage(message) {
+        state.validationMessage = message || "";
+        updateNotice(dom.validationMessage, state.validationMessage, false);
+      }
+
+      function setFatalMessage(message) {
+        state.fatalMessage = message || "";
+        updateNotice(dom.fatalMessage, state.fatalMessage, true);
+      }
+
+      function setPillState(element, text, variant) {
+        element.textContent = text;
+        element.classList.remove("good", "bad", "pending");
+        if (variant) element.classList.add(variant);
+      }
+
+      function loadScriptWithFallback(name, urls, testFn) {
+        return urls.reduce(function (promise, url) {
+          return promise.catch(function () {
+            return new Promise(function (resolve, reject) {
+              const existing = document.querySelector('script[data-lib="' + name + '"][src="' + url + '"]');
+              if (existing && testFn()) {
+                resolve(url);
+                return;
+              }
+              const script = document.createElement("script");
+              script.src = url;
+              script.async = true;
+              script.dataset.lib = name;
+              script.onload = function () {
+                if (testFn()) resolve(url);
+                else reject(new Error(name + " loaded but global not available"));
+              };
+              script.onerror = function () {
+                reject(new Error("Failed to load " + name + " from " + url));
+              };
+              document.head.appendChild(script);
+            });
+          });
+        }, Promise.reject(new Error("start")));
+      }
+
+      async function initializeLibraries() {
+        setPillState(dom.libraryStatus, "Loading Chart.js and SheetJS…", "pending");
+
+        const chartUrls = [
+          "https://unpkg.com/chart.js/dist/chart.umd.min.js",
+          "https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js",
+          "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"
+        ];
+
+        const xlsxUrls = [
+          "https://unpkg.com/xlsx/dist/xlsx.full.min.js",
+          "https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js",
+          "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+        ];
+
+        const results = await Promise.allSettled([
+          loadScriptWithFallback("chartjs", chartUrls, function () { return Boolean(window.Chart); }),
+          loadScriptWithFallback("xlsx", xlsxUrls, function () { return Boolean(window.XLSX); })
+        ]);
+
+        state.libraries.chart = results[0].status === "fulfilled" && Boolean(window.Chart);
+        state.libraries.xlsx = results[1].status === "fulfilled" && Boolean(window.XLSX);
+
+        if (state.libraries.chart && state.libraries.xlsx) {
+          setPillState(dom.libraryStatus, "Libraries ready", "good");
+          setFatalMessage("");
+          return;
+        }
+
+        const issues = [];
+        if (!state.libraries.chart) issues.push("Chart.js failed from all CDNs. Charts will show an in-page error state.");
+        if (!state.libraries.xlsx) issues.push("SheetJS/xlsx failed from all CDNs. Excel upload parsing is unavailable until the library loads.");
+        setPillState(dom.libraryStatus, "Library issue detected", "bad");
+        setFatalMessage(issues.join(" "));
+      }
+
+      function stripAccents(value) {
+        return String(value || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/đ/g, "d")
+          .replace(/Đ/g, "D");
+      }
+
+      function normalizeLabel(value) {
+        return stripAccents(value)
+          .toLowerCase()
+          .replace(/[%]/g, "")
+          .replace(/[^a-z0-9]+/g, " ")
+          .trim()
+          .replace(/\s+/g, " ");
+      }
+
+      function isFiniteNumber(value) {
+        return typeof value === "number" && Number.isFinite(value);
+      }
+
+      function parseNumber(value) {
+        if (isFiniteNumber(value)) return value;
+        if (value == null) return null;
+        const raw = String(value).trim();
+        if (!raw) return null;
+        let cleaned = raw
+          .replace(/\s+/g, "")
+          .replace(/[₫đ]/gi, "")
+          .replace(/tỷ|ty|vnd/gi, "");
+
+        let negative = false;
+        if (/^\(.*\)$/.test(cleaned)) {
+          negative = true;
+          cleaned = cleaned.slice(1, -1);
+        }
+
+        if (cleaned.indexOf(",") > -1 && cleaned.indexOf(".") > -1) {
+          if (cleaned.lastIndexOf(",") > cleaned.lastIndexOf(".")) {
+            cleaned = cleaned.replace(/\./g, "").replace(/,/g, ".");
+          } else {
+            cleaned = cleaned.replace(/,/g, "");
+          }
+        } else if (cleaned.indexOf(",") > -1) {
+          if (/,-?\d{1,2}$/.test(cleaned)) cleaned = cleaned.replace(/,/g, ".");
+          else cleaned = cleaned.replace(/,/g, "");
+        }
+
+        const numeric = Number(cleaned);
+        if (!Number.isFinite(numeric)) return null;
+        return negative ? -numeric : numeric;
+      }
+
+      function parseMonthCell(value) {
+        if (value == null || value === "") return null;
+        if (Object.prototype.toString.call(value) === "[object Date]" && !Number.isNaN(value.getTime())) {
+          return new Date(value.getFullYear(), value.getMonth(), 1);
+        }
+
+        if (typeof value === "number" && window.XLSX && window.XLSX.SSF && typeof window.XLSX.SSF.parse_date_code === "function") {
+          const parsed = window.XLSX.SSF.parse_date_code(value);
+          if (parsed && parsed.y >= 2000 && parsed.y <= 2100 && parsed.m >= 1 && parsed.m <= 12) {
+            return new Date(parsed.y, parsed.m - 1, 1);
+          }
+        }
+
+        const raw = String(value).trim();
+        if (!raw) return null;
+        const normalized = stripAccents(raw)
+          .replace(/thang\s*/i, "")
+          .replace(/^t\s*/i, "")
+          .replace(/_/g, "/")
+          .trim();
+
+        let match = normalized.match(/^(\d{1,2})[\/\-](\d{2,4})$/);
+        if (match) {
+          const month = Number(match[1]);
+          let year = Number(match[2]);
+          if (year < 100) year += year >= 70 ? 1900 : 2000;
+          if (month >= 1 && month <= 12) return new Date(year, month - 1, 1);
+        }
+
+        match = normalized.match(/^(\d{4})[\/\-](\d{1,2})$/);
+        if (match) {
+          const year = Number(match[1]);
+          const month = Number(match[2]);
+          if (month >= 1 && month <= 12) return new Date(year, month - 1, 1);
+        }
+
+        match = raw.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*[\s\/-](\d{2,4})$/i);
+        if (match) {
+          const months = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12 };
+          let year = Number(match[2]);
+          if (year < 100) year += year >= 70 ? 1900 : 2000;
+          return new Date(year, months[match[1].slice(0, 3).toLowerCase()] - 1, 1);
+        }
+
+        const tentative = new Date(raw);
+        if (!Number.isNaN(tentative.getTime())) {
+          const year = tentative.getFullYear();
+          const month = tentative.getMonth() + 1;
+          if (year >= 2000 && year <= 2100 && month >= 1 && month <= 12) {
+            return new Date(year, tentative.getMonth(), 1);
+          }
+        }
+
+        return null;
+      }
+
+      function monthKeyFromDate(date) {
+        return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+      }
+
+      function parseMonthKey(key) {
+        const parts = String(key).split("-");
+        return { year: Number(parts[0]), month: Number(parts[1]) };
+      }
+
+      function compareMonthKeys(a, b) {
+        return a.localeCompare(b);
+      }
+
+      function formatMonthLabelFromKey(key) {
+        const parts = parseMonthKey(key);
+        return "T" + parts.month + "/" + parts.year;
+      }
+
+      function quarterFromMonth(month) {
+        return Math.floor((month - 1) / 3) + 1;
+      }
+
+      function periodLabel(period, periodKey) {
+        if (period === "monthly") return formatMonthLabelFromKey(periodKey);
+        if (period === "quarterly") {
+          const parts = String(periodKey).split("-Q");
+          return "Q" + parts[1] + "/" + parts[0];
+        }
+        return String(periodKey);
+      }
+
+      function formatValue(value, isPercentage) {
+        if (!isFiniteNumber(value)) return "Data not available";
+        const absValue = Math.abs(value);
+        const decimals = absValue % 1 === 0 ? 0 : 1;
+        const formatted = new Intl.NumberFormat("en-US", {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: 1
+        }).format(value);
+        return isPercentage ? formatted + "%" : formatted;
+      }
+
+      function formatSignedValue(value, isPercentage) {
+        if (!isFiniteNumber(value)) return "Data not available";
+        const prefix = value > 0 ? "+" : value < 0 ? "-" : "±";
+        const base = formatValue(Math.abs(value), isPercentage);
+        return prefix + base;
+      }
+
+      function formatSignedPoints(value) {
+        if (!isFiniteNumber(value)) return "Data not available";
+        const prefix = value > 0 ? "+" : value < 0 ? "-" : "±";
+        const base = formatValue(Math.abs(value), false);
+        return prefix + base;
+      }
+
+      function formatVariancePercent(value) {
+        if (!isFiniteNumber(value)) return "Data not available";
+        return formatSignedValue(value, true);
+      }
+
+      function classifyDelta(value) {
+        if (!isFiniteNumber(value) || Math.abs(value) < 0.0001) return "flat";
+        return value > 0 ? "good" : "bad";
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function detectHeaderRow(rows) {
+        let best = null;
+        rows.forEach(function (row, rowIndex) {
+          const parsedCells = row.map(function (cell, colIndex) {
+            return { colIndex: colIndex, date: parseMonthCell(cell) };
+          }).filter(function (entry) { return entry.date; });
+
+          if (parsedCells.length < 3) return;
+
+          let currentRun = [parsedCells[0]];
+          const runs = [];
+          for (let i = 1; i < parsedCells.length; i += 1) {
+            if (parsedCells[i].colIndex === parsedCells[i - 1].colIndex + 1) {
+              currentRun.push(parsedCells[i]);
+            } else {
+              runs.push(currentRun);
+              currentRun = [parsedCells[i]];
+            }
+          }
+          runs.push(currentRun);
+          const longest = runs.sort(function (a, b) { return b.length - a.length; })[0];
+          if (!best || longest.length > best.cols.length) {
+            best = {
+              rowIndex: rowIndex,
+              cols: longest.map(function (entry) { return entry.colIndex; }),
+              dates: longest.map(function (entry) { return entry.date; })
+            };
+          }
+        });
+        return best;
+      }
+
+      function extractRowLabel(row, beforeColumn) {
+        const candidates = row.slice(0, beforeColumn).filter(function (cell) {
+          return typeof cell === "string" && cell.trim();
+        }).map(function (cell) { return cell.trim(); });
+        if (!candidates.length) return null;
+        return candidates.sort(function (a, b) { return b.length - a.length; })[0];
+      }
+
+      function matchRowIndex(rowInfos, aliases) {
+        const normalizedAliases = aliases.map(normalizeLabel).filter(Boolean);
+        let match = rowInfos.find(function (info) {
+          return normalizedAliases.includes(info.norm);
+        });
+        if (match) return match.rowIndex;
+
+        match = rowInfos.find(function (info) {
+          return normalizedAliases.some(function (alias) {
+            return alias.length >= 5 && (info.norm.indexOf(alias + " ") === 0 || info.norm.indexOf(" " + alias + " ") > -1 || info.norm.endsWith(" " + alias) || info.norm === alias);
+          });
+        });
+
+        return match ? match.rowIndex : null;
+      }
+
+      function parseSheet(sheet, sheetName) {
+        const rows = window.XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null, blankrows: false });
+        if (!rows.length) throw new Error('Sheet "' + sheetName + '" is empty.');
+
+        const header = detectHeaderRow(rows);
+        if (!header) throw new Error('Unable to detect the monthly header row in sheet "' + sheetName + '".');
+
+        const monthEntries = header.cols.map(function (colIndex, idx) {
+          return { colIndex: colIndex, date: header.dates[idx], key: monthKeyFromDate(header.dates[idx]) };
+        }).filter(function (entry, index, array) {
+          return array.findIndex(function (candidate) { return candidate.key === entry.key; }) === index;
+        }).sort(function (a, b) {
+          return a.key.localeCompare(b.key);
+        });
+
+        const dateStartCol = Math.min.apply(Math, monthEntries.map(function (entry) { return entry.colIndex; }));
+        const rowInfos = rows.map(function (row, rowIndex) {
+          const label = extractRowLabel(row, dateStartCol);
+          return { rowIndex: rowIndex, label: label, norm: normalizeLabel(label) };
+        }).filter(function (info) {
+          return info.rowIndex !== header.rowIndex && info.label;
+        });
+
+        const rowIndexes = {};
+        DIRECT_ROW_METRICS.forEach(function (metric) {
+          rowIndexes[metric.id] = matchRowIndex(rowInfos, metric.aliases);
+        });
+
+        const records = {};
+        const monthKeys = monthEntries.map(function (entry) { return entry.key; });
+        monthKeys.forEach(function (key, idx) {
+          records[key] = { date: monthEntries[idx].date };
+          DIRECT_ROW_METRICS.forEach(function (metric) {
+            records[key][metric.id] = null;
+          });
+        });
+
+        DIRECT_ROW_METRICS.forEach(function (metric) {
+          const rowIndex = rowIndexes[metric.id];
+          if (rowIndex == null) return;
+          monthEntries.forEach(function (entry) {
+            const rawCell = rows[rowIndex] ? rows[rowIndex][entry.colIndex] : null;
+            const numeric = parseNumber(rawCell);
+            records[entry.key][metric.id] = numeric;
+          });
+        });
+
+        return {
+          sheetName: sheetName,
+          monthKeys: monthKeys,
+          records: records,
+          rowIndexes: rowIndexes,
+          headerRowIndex: header.rowIndex
+        };
+      }
+
+      function createEmbeddedSampleDataset() {
+        function buildSheet(type) {
+          const records = {};
+          const monthKeys = [];
+          let baseRevenue = type === "Actual" ? 18100 : 18350;
+          let growth = type === "Actual" ? 0.014 : 0.012;
+          for (let year = 2024; year <= 2025; year += 1) {
+            for (let month = 1; month <= 12; month += 1) {
+              const index = monthKeys.length;
+              const seasonality = [0.96, 0.97, 1.01, 1.03, 1.04, 1.06, 1.05, 1.08, 1.07, 1.11, 1.15, 1.22][month - 1];
+              const performanceTilt = type === "Actual" ? (1 + Math.sin(index / 3.6) * 0.028 + (year === 2025 ? 0.008 : -0.005)) : (1 + Math.cos(index / 4.1) * 0.016);
+              const revenue = +(baseRevenue * seasonality * performanceTilt).toFixed(1);
+              const cogsRate = type === "Actual" ? (0.618 + (month % 4) * 0.002) : (0.623 + ((month + 1) % 4) * 0.0016);
+              const cogs = +(revenue * cogsRate).toFixed(1);
+              const grossProfit = +(revenue - cogs).toFixed(1);
+              const sm = +(revenue * (type === "Actual" ? 0.094 + (month % 3) * 0.0015 : 0.092 + (month % 2) * 0.0012)).toFixed(1);
+              const ga = +(revenue * (type === "Actual" ? 0.056 + (month % 2) * 0.0008 : 0.055 + ((month + 1) % 2) * 0.0006)).toFixed(1);
+              const ebitda = +(grossProfit - sm - ga + (type === "Actual" ? 520 : 480)).toFixed(1);
+              const ebit = +(ebitda - (type === "Actual" ? 690 : 660)).toFixed(1);
+              const interest = +(220 + (month % 3) * 12 + (year === 2025 ? 14 : 0)).toFixed(1);
+              const preTax = ebit - interest;
+              const netIncome = +(preTax > 0 ? preTax * 0.8 : preTax).toFixed(1);
+              const product1Share = 0.43 + Math.sin(index / 5) * 0.02;
+              const product2Share = 0.34 + Math.cos(index / 6) * 0.016;
+              const product1 = +(revenue * product1Share).toFixed(1);
+              const product2 = +(revenue * product2Share).toFixed(1);
+              const product3 = +(revenue - product1 - product2).toFixed(1);
+              const key = year + "-" + String(month).padStart(2, "0");
+              monthKeys.push(key);
+              records[key] = {
+                date: new Date(year, month - 1, 1),
+                revenue: revenue,
+                grossProfit: grossProfit,
+                ebitda: ebitda,
+                ebit: ebit,
+                netIncome: netIncome,
+                cogs: cogs,
+                sm: sm,
+                ga: ga,
+                interest: interest,
+                product1: product1,
+                product2: product2,
+                product3: product3
+              };
+              baseRevenue *= 1 + growth;
+            }
+          }
+
+          return {
+            sheetName: type,
+            monthKeys: monthKeys,
+            records: records,
+            rowIndexes: {}
+          };
+        }
+
+        return {
+          actual: buildSheet("Actual"),
+          budget: buildSheet("Budget")
+        };
+      }
+
+      function getMetricOption(metricId) {
+        return METRIC_OPTIONS.find(function (metric) { return metric.id === metricId; }) || METRIC_OPTIONS[0];
+      }
+
+      function getMetricValueFromRecord(metrics, metricId) {
+        if (!metrics) return null;
+        const revenue = metrics.revenue;
+        switch (metricId) {
+          case "grossMargin":
+            return isFiniteNumber(metrics.grossProfit) && isFiniteNumber(revenue) && revenue !== 0 ? (metrics.grossProfit / revenue) * 100 : null;
+          case "ebitdaMargin":
+            return isFiniteNumber(metrics.ebitda) && isFiniteNumber(revenue) && revenue !== 0 ? (metrics.ebitda / revenue) * 100 : null;
+          case "ebitMargin":
+            return isFiniteNumber(metrics.ebit) && isFiniteNumber(revenue) && revenue !== 0 ? (metrics.ebit / revenue) * 100 : null;
+          case "netIncomeMargin":
+            return isFiniteNumber(metrics.netIncome) && isFiniteNumber(revenue) && revenue !== 0 ? (metrics.netIncome / revenue) * 100 : null;
+          default:
+            return isFiniteNumber(metrics[metricId]) ? metrics[metricId] : null;
+        }
+      }
+
+      function aggregateMetrics(sheetData, monthKeys) {
+        const metrics = {};
+        DIRECT_ROW_METRICS.forEach(function (metric) {
+          const values = monthKeys.map(function (key) {
+            return sheetData.records[key] ? sheetData.records[key][metric.id] : null;
+          }).filter(isFiniteNumber);
+          metrics[metric.id] = values.length ? values.reduce(function (sum, value) { return sum + value; }, 0) : null;
+        });
+        return metrics;
+      }
+
+      function buildAggregatedSeries(sheetData, period) {
+        if (!sheetData) return [];
+        if (period === "monthly") {
+          return sheetData.monthKeys.slice().sort(compareMonthKeys).map(function (key) {
+            return {
+              key: key,
+              label: formatMonthLabelFromKey(key),
+              monthKeys: [key],
+              metrics: aggregateMetrics(sheetData, [key])
+            };
+          });
+        }
+
+        const grouped = {};
+        const monthSet = new Set(sheetData.monthKeys);
+        sheetData.monthKeys.forEach(function (key) {
+          const parts = parseMonthKey(key);
+          if (period === "quarterly") {
+            const q = quarterFromMonth(parts.month);
+            const groupKey = parts.year + "-Q" + q;
+            if (!grouped[groupKey]) grouped[groupKey] = { year: parts.year, quarter: q, monthKeys: [] };
+            grouped[groupKey].monthKeys.push(key);
+          } else {
+            const groupKey = String(parts.year);
+            if (!grouped[groupKey]) grouped[groupKey] = { year: parts.year, monthKeys: [] };
+            grouped[groupKey].monthKeys.push(key);
+          }
+        });
+
+        return Object.keys(grouped).sort().map(function (groupKey) {
+          const group = grouped[groupKey];
+          let requiredKeys = [];
+          if (period === "quarterly") {
+            const startMonth = (group.quarter - 1) * 3 + 1;
+            requiredKeys = [0, 1, 2].map(function (offset) {
+              return group.year + "-" + String(startMonth + offset).padStart(2, "0");
+            });
+          } else {
+            requiredKeys = Array.from({ length: 12 }, function (_, idx) {
+              return group.year + "-" + String(idx + 1).padStart(2, "0");
+            });
+          }
+
+          const isComplete = requiredKeys.every(function (key) { return monthSet.has(key); });
+          if (!isComplete) return null;
+          return {
+            key: groupKey,
+            label: periodLabel(period, groupKey),
+            monthKeys: requiredKeys,
+            metrics: aggregateMetrics(sheetData, requiredKeys)
+          };
+        }).filter(Boolean);
+      }
+
+      function getPrimarySheetName() {
+        if (state.controls.showActual) return "actual";
+        if (state.controls.showBudget) return "budget";
+        return "actual";
+      }
+
+      function getSheetLabel(sheetName) {
+        return sheetName === "actual" ? "Actual" : "Budget";
+      }
+
+      function getActiveSheetNames() {
+        const active = [];
+        if (state.controls.showActual) active.push("actual");
+        if (state.controls.showBudget) active.push("budget");
+        return active;
+      }
+
+      function computeChange(latest, previous, metricId) {
+        const latestValue = getMetricValueFromRecord(latest && latest.metrics, metricId);
+        const previousValue = getMetricValueFromRecord(previous && previous.metrics, metricId);
+        const metricOption = getMetricOption(metricId);
+        if (!isFiniteNumber(latestValue) || !isFiniteNumber(previousValue)) return null;
+        if (metricOption.type === "margin") {
+          return latestValue - previousValue;
+        }
+        if (previousValue === 0) return null;
+        return ((latestValue - previousValue) / Math.abs(previousValue)) * 100;
+      }
+
+      function renderKpis() {
+        const primarySheetName = getPrimarySheetName();
+        const series = buildAggregatedSeries(state.data[primarySheetName], state.controls.period);
+        const latest = series[series.length - 1];
+        const previous = series[series.length - 2];
+        const cadenceLabel = state.controls.period === "monthly" ? "MoM" : state.controls.period === "quarterly" ? "QoQ" : "YoY";
+
+        dom.kpiGrid.innerHTML = KPI_DEFS.map(function (kpi) {
+          const metricOption = getMetricOption(kpi.id);
+          const value = getMetricValueFromRecord(latest && latest.metrics, kpi.id);
+          const change = computeChange(latest, previous, kpi.id);
+          const changeClass = classifyDelta(change);
+          const isPercentage = metricOption.type === "margin";
+          const changeText = isFiniteNumber(change)
+            ? (metricOption.type === "margin" ? formatSignedPoints(change) + " pp" : formatSignedValue(change, true))
+            : "Data not available";
+          const arrow = changeClass === "good" ? "▲" : changeClass === "bad" ? "▼" : "◆";
+          return '' +
+            '<article class="card">' +
+              '<div class="source">' + escapeHtml(getSheetLabel(primarySheetName)) + '</div>' +
+              '<h3>' + escapeHtml(kpi.label) + '</h3>' +
+              '<div class="value">' + escapeHtml(formatValue(value, isPercentage)) + '</div>' +
+              '<div class="delta-row">' +
+                '<span class="meta">' + escapeHtml(latest ? latest.label : "No period") + '</span>' +
+                '<span class="delta-badge ' + changeClass + '">' + arrow + ' ' + escapeHtml(cadenceLabel + ' ' + changeText) + '</span>' +
+              '</div>' +
+            '</article>';
+        }).join("");
+      }
+
+      function destroyChart(chartKey) {
+        if (state.charts[chartKey]) {
+          state.charts[chartKey].destroy();
+          state.charts[chartKey] = null;
+        }
+      }
+
+      function chartAxisFormatter(value, metricId) {
+        const metricOption = getMetricOption(metricId);
+        return metricOption.type === "margin" ? formatValue(value, true) : formatValue(value, false);
+      }
+
+      function showChartMessage(canvasId, message, isError) {
+        const canvas = document.getElementById(canvasId);
+        const empty = document.getElementById(canvasId.replace("Chart", "Empty"));
+        canvas.style.display = "none";
+        empty.classList.add("show");
+        empty.classList.toggle("error", Boolean(isError));
+        empty.textContent = message;
+      }
+
+      function showChartCanvas(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        const empty = document.getElementById(canvasId.replace("Chart", "Empty"));
+        canvas.style.display = "block";
+        empty.classList.remove("show", "error");
+        empty.textContent = "";
+      }
+
+      function buildAlignedSeries(activeSheets, period) {
+        const seriesMap = {};
+        activeSheets.forEach(function (sheetName) {
+          seriesMap[sheetName] = buildAggregatedSeries(state.data[sheetName], period);
+        });
+        const keys = Array.from(new Set(activeSheets.flatMap(function (sheetName) {
+          return seriesMap[sheetName].map(function (record) { return record.key; });
+        }))).sort();
+        return { keys: keys, seriesMap: seriesMap };
+      }
+
+      function createCommonChartOptions(metricId) {
+        return {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: "index",
+            intersect: false
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: "#dce7ff",
+                font: { family: "Inter, Manrope, sans-serif", size: 12, weight: 700 },
+                usePointStyle: true,
+                boxWidth: 8,
+                boxHeight: 8,
+                padding: 18
+              }
+            },
+            tooltip: {
+              backgroundColor: "rgba(11, 20, 35, 0.95)",
+              borderColor: "rgba(117, 158, 233, 0.18)",
+              borderWidth: 1,
+              titleColor: "#ffffff",
+              bodyColor: "#dce7ff",
+              cornerRadius: 14,
+              padding: 12,
+              callbacks: {
+                label: function (context) {
+                  return context.dataset.label + ": " + chartAxisFormatter(context.raw, metricId);
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#9fb2d3", font: { size: 11, weight: 600 } },
+              grid: { display: false }
+            },
+            y: {
+              ticks: {
+                color: "#9fb2d3",
+                font: { size: 11, weight: 600 },
+                callback: function (value) { return chartAxisFormatter(value, metricId); }
+              },
+              grid: { color: "rgba(123, 151, 196, 0.12)", drawBorder: false }
+            }
+          }
+        };
+      }
+
+      function renderIncomeTrendChart() {
+        destroyChart("incomeTrend");
+        if (!state.libraries.chart) {
+          showChartMessage("incomeTrendChart", "Chart.js failed from all CDNs. This chart cannot be rendered.", true);
+          return;
+        }
+
+        const activeSheets = getActiveSheetNames();
+        if (!activeSheets.length) {
+          showChartMessage("incomeTrendChart", "Select at least one view to display the trend.", false);
+          return;
+        }
+
+        const aligned = buildAlignedSeries(activeSheets, state.controls.period);
+        if (!aligned.keys.length) {
+          showChartMessage("incomeTrendChart", "Data not available for the selected period.", false);
+          return;
+        }
+
+        const labels = aligned.keys.map(function (key) { return periodLabel(state.controls.period, key); });
+        const palette = {
+          actual: { border: "#66b0ff", fill: "rgba(102, 176, 255, 0.14)" },
+          budget: { border: "#8d7cff", fill: "rgba(141, 124, 255, 0.14)" }
+        };
+
+        const datasets = activeSheets.map(function (sheetName) {
+          const recordByKey = Object.fromEntries(aligned.seriesMap[sheetName].map(function (record) { return [record.key, record]; }));
+          return {
+            label: getSheetLabel(sheetName),
+            data: aligned.keys.map(function (key) {
+              const record = recordByKey[key];
+              return record ? getMetricValueFromRecord(record.metrics, state.controls.metricId) : null;
+            }),
+            borderColor: palette[sheetName].border,
+            backgroundColor: palette[sheetName].fill,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            borderWidth: 2.6,
+            tension: 0.34,
+            fill: false,
+            spanGaps: true
+          };
+        });
+
+        showChartCanvas("incomeTrendChart");
+        state.charts.incomeTrend = new window.Chart(document.getElementById("incomeTrendChart"), {
+          type: "line",
+          data: { labels: labels, datasets: datasets },
+          options: createCommonChartOptions(state.controls.metricId)
+        });
+      }
+
+      function renderComparisonChart() {
+        destroyChart("comparison");
+        if (!state.libraries.chart) {
+          showChartMessage("comparisonChart", "Chart.js failed from all CDNs. This chart cannot be rendered.", true);
+          return;
+        }
+
+        const aligned = buildAlignedSeries(["actual", "budget"], state.controls.period);
+        const lastKeys = aligned.keys.slice(-6);
+        if (!lastKeys.length) {
+          showChartMessage("comparisonChart", "Data not available for the selected period.", false);
+          return;
+        }
+
+        const actualByKey = Object.fromEntries(aligned.seriesMap.actual.map(function (record) { return [record.key, record]; }));
+        const budgetByKey = Object.fromEntries(aligned.seriesMap.budget.map(function (record) { return [record.key, record]; }));
+        const metricId = state.controls.metricId;
+
+        const datasets = [];
+        if (state.controls.showActual) {
+          datasets.push({
+            label: "Actual",
+            data: lastKeys.map(function (key) {
+              const record = actualByKey[key];
+              return record ? getMetricValueFromRecord(record.metrics, metricId) : null;
+            }),
+            backgroundColor: "rgba(94, 173, 255, 0.78)",
+            borderColor: "#66b0ff",
+            borderWidth: 1.4,
+            borderRadius: 9,
+            maxBarThickness: 34
+          });
+        }
+        if (state.controls.showBudget) {
+          datasets.push({
+            label: "Budget",
+            data: lastKeys.map(function (key) {
+              const record = budgetByKey[key];
+              return record ? getMetricValueFromRecord(record.metrics, metricId) : null;
+            }),
+            backgroundColor: "rgba(143, 125, 255, 0.72)",
+            borderColor: "#8d7cff",
+            borderWidth: 1.4,
+            borderRadius: 9,
+            maxBarThickness: 34
+          });
+        }
+
+        if (!datasets.length) {
+          showChartMessage("comparisonChart", "Select at least one view to display Actual vs Budget.", false);
+          return;
+        }
+
+        showChartCanvas("comparisonChart");
+        state.charts.comparison = new window.Chart(document.getElementById("comparisonChart"), {
+          type: "bar",
+          data: {
+            labels: lastKeys.map(function (key) { return periodLabel(state.controls.period, key); }),
+            datasets: datasets
+          },
+          options: createCommonChartOptions(metricId)
+        });
+      }
+
+      function renderRevenueStructureChart() {
+        destroyChart("revenueStructure");
+        if (!state.libraries.chart) {
+          showChartMessage("revenueStructureChart", "Chart.js failed from all CDNs. This chart cannot be rendered.", true);
+          return;
+        }
+
+        const primarySheetName = getPrimarySheetName();
+        const series = buildAggregatedSeries(state.data[primarySheetName], state.controls.period);
+        const latest = series[series.length - 1];
+        if (!latest) {
+          showChartMessage("revenueStructureChart", "Data not available for the selected period.", false);
+          return;
+        }
+
+        const values = ["product1", "product2", "product3"].map(function (metricId) {
+          return getMetricValueFromRecord(latest.metrics, metricId);
+        });
+        if (!values.some(isFiniteNumber)) {
+          showChartMessage("revenueStructureChart", "Revenue structure rows are missing. Expected Sản phẩm 1, Sản phẩm 2, and Sản phẩm 3.", false);
+          return;
+        }
+
+        showChartCanvas("revenueStructureChart");
+        state.charts.revenueStructure = new window.Chart(document.getElementById("revenueStructureChart"), {
+          type: "doughnut",
+          data: {
+            labels: ["Sản phẩm 1", "Sản phẩm 2", "Sản phẩm 3"],
+            datasets: [{
+              data: values,
+              backgroundColor: ["#66b0ff", "#8d7cff", "#23d6c6"],
+              borderColor: ["rgba(7, 15, 28, 0.95)", "rgba(7, 15, 28, 0.95)", "rgba(7, 15, 28, 0.95)"],
+              borderWidth: 3,
+              hoverOffset: 10
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "64%",
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  color: "#dce7ff",
+                  font: { family: "Inter, Manrope, sans-serif", size: 12, weight: 700 },
+                  usePointStyle: true,
+                  boxWidth: 10,
+                  padding: 18
+                }
+              },
+              tooltip: {
+                backgroundColor: "rgba(11, 20, 35, 0.95)",
+                borderColor: "rgba(117, 158, 233, 0.18)",
+                borderWidth: 1,
+                titleColor: "#ffffff",
+                bodyColor: "#dce7ff",
+                cornerRadius: 14,
+                padding: 12,
+                callbacks: {
+                  label: function (context) {
+                    const total = context.dataset.data.reduce(function (sum, value) { return sum + (isFiniteNumber(value) ? value : 0); }, 0);
+                    const share = total ? (context.raw / total) * 100 : null;
+                    return context.label + ": " + formatValue(context.raw, false) + (isFiniteNumber(share) ? " (" + formatValue(share, true) + ")" : "");
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      function renderScopeAnalysisChart() {
+        destroyChart("scopeAnalysis");
+        if (!state.libraries.chart) {
+          showChartMessage("scopeAnalysisChart", "Chart.js failed from all CDNs. This chart cannot be rendered.", true);
+          return;
+        }
+
+        const period = state.controls.period;
+        const scope = state.controls.scope;
+        const primarySheetName = getPrimarySheetName();
+        const palette = {
+          revenue: { border: "#66b0ff", fill: "rgba(102, 176, 255, 0.15)" },
+          cogs: { border: "#ff8c66", fill: "rgba(255, 140, 102, 0.14)" },
+          sm: { border: "#ffc857", fill: "rgba(255, 200, 87, 0.14)" },
+          ga: { border: "#23d6c6", fill: "rgba(35, 214, 198, 0.14)" },
+          grossProfit: { border: "#66b0ff", fill: "rgba(102, 176, 255, 0.14)" },
+          ebitda: { border: "#8d7cff", fill: "rgba(141, 124, 255, 0.14)" },
+          ebit: { border: "#23d6c6", fill: "rgba(35, 214, 198, 0.14)" },
+          netIncome: { border: "#39d98a", fill: "rgba(57, 217, 138, 0.14)" }
+        };
+
+        let labels = [];
+        let datasets = [];
+        let metricForAxis = "revenue";
+
+        if (scope === "Profitability") {
+          const series = buildAggregatedSeries(state.data[primarySheetName], period);
+          if (!series.length) {
+            showChartMessage("scopeAnalysisChart", "Data not available for the selected period.", false);
+            return;
+          }
+          labels = series.map(function (record) { return record.label; });
+          ["grossProfit", "ebitda", "ebit", "netIncome"].forEach(function (metricId, index) {
+            datasets.push({
+              label: (metricId === "grossProfit" ? "Gross Profit" : metricId === "netIncome" ? "Net Income" : metricId.toUpperCase()),
+              data: series.map(function (record) { return getMetricValueFromRecord(record.metrics, metricId); }),
+              borderColor: palette[metricId].border,
+              backgroundColor: palette[metricId].fill,
+              borderWidth: 2.4,
+              tension: 0.32,
+              pointRadius: 2.8,
+              fill: index === 0
+            });
+          });
+          metricForAxis = "revenue";
+        } else {
+          const scopeMetricMap = {
+            "Revenue": "revenue",
+            "COGS": "cogs",
+            "S&M": "sm",
+            "G&A": "ga"
+          };
+          const metricId = scopeMetricMap[scope];
+          const activeSheets = getActiveSheetNames();
+          const aligned = buildAlignedSeries(activeSheets, period);
+          if (!aligned.keys.length || !activeSheets.length) {
+            showChartMessage("scopeAnalysisChart", "Select at least one view and period with available data.", false);
+            return;
+          }
+          labels = aligned.keys.map(function (key) { return periodLabel(period, key); });
+          const colors = {
+            actual: { border: palette[metricId].border, fill: palette[metricId].fill },
+            budget: { border: "#8d7cff", fill: "rgba(141, 124, 255, 0.12)" }
+          };
+          datasets = activeSheets.map(function (sheetName, index) {
+            const recordByKey = Object.fromEntries(aligned.seriesMap[sheetName].map(function (record) { return [record.key, record]; }));
+            return {
+              label: getSheetLabel(sheetName) + " " + scope,
+              data: aligned.keys.map(function (key) {
+                const record = recordByKey[key];
+                return record ? getMetricValueFromRecord(record.metrics, metricId) : null;
+              }),
+              borderColor: colors[sheetName].border,
+              backgroundColor: colors[sheetName].fill,
+              borderWidth: 2.5,
+              pointRadius: 2.8,
+              tension: 0.34,
+              fill: index === 0
+            };
+          });
+          metricForAxis = metricId;
+        }
+
+        showChartCanvas("scopeAnalysisChart");
+        state.charts.scopeAnalysis = new window.Chart(document.getElementById("scopeAnalysisChart"), {
+          type: "line",
+          data: { labels: labels, datasets: datasets },
+          options: createCommonChartOptions(metricForAxis)
+        });
+      }
+
+      function getLatestSharedMonthKey() {
+        const actualMonths = state.data.actual ? state.data.actual.monthKeys : [];
+        const budgetMonths = state.data.budget ? state.data.budget.monthKeys : [];
+        const budgetSet = new Set(budgetMonths);
+        const shared = actualMonths.filter(function (key) { return budgetSet.has(key); }).sort(compareMonthKeys);
+        return shared.length ? shared[shared.length - 1] : null;
+      }
+
+      function getSharedMonthsUpTo(key) {
+        if (!key) return [];
+        const latestParts = parseMonthKey(key);
+        const actualSet = new Set(state.data.actual.monthKeys);
+        const budgetSet = new Set(state.data.budget.monthKeys);
+        return Array.from({ length: latestParts.month }, function (_, idx) {
+          return latestParts.year + "-" + String(idx + 1).padStart(2, "0");
+        }).filter(function (monthKey) {
+          return actualSet.has(monthKey) && budgetSet.has(monthKey);
+        });
+      }
+
+      function evaluateVarianceAssessment(metricType, actualValue, budgetValue) {
+        if (!isFiniteNumber(actualValue) || !isFiniteNumber(budgetValue)) return { label: "Data not available", className: "flat" };
+        if (Math.abs(actualValue - budgetValue) < 0.0001) return { label: "Trung lập", className: "flat" };
+        let favorable;
+        if (metricType === "cost") favorable = actualValue <= budgetValue;
+        else favorable = actualValue >= budgetValue;
+        return favorable ? { label: "Thuận lợi", className: "good" } : { label: "Bất lợi", className: "bad" };
+      }
+
+      function renderVarianceTable() {
+        const latestSharedMonth = getLatestSharedMonthKey();
+        const ytdKeys = getSharedMonthsUpTo(latestSharedMonth);
+        if (!latestSharedMonth || !ytdKeys.length) {
+          dom.varianceSubtitle.textContent = "No shared month found between Actual and Budget.";
+          dom.varianceTableBody.innerHTML = '<tr><td colspan="6">Data not available</td></tr>';
+          return [];
+        }
+
+        dom.varianceSubtitle.textContent = "YTD through " + formatMonthLabelFromKey(latestSharedMonth) + " based on the intersection of months available in both Actual and Budget.";
+
+        const actualMetrics = aggregateMetrics(state.data.actual, ytdKeys);
+        const budgetMetrics = aggregateMetrics(state.data.budget, ytdKeys);
+
+        const rows = VARIANCE_ROWS.map(function (row) {
+          const actualValue = getMetricValueFromRecord(actualMetrics, row.id);
+          const budgetValue = getMetricValueFromRecord(budgetMetrics, row.id);
+          const variance = isFiniteNumber(actualValue) && isFiniteNumber(budgetValue) ? actualValue - budgetValue : null;
+          const variancePct = isFiniteNumber(actualValue) && isFiniteNumber(budgetValue) && budgetValue !== 0
+            ? ((actualValue - budgetValue) / Math.abs(budgetValue)) * 100
+            : null;
+          const assessment = evaluateVarianceAssessment(row.type, actualValue, budgetValue);
+          return {
+            id: row.id,
+            label: row.label,
+            type: row.type,
+            actualValue: actualValue,
+            budgetValue: budgetValue,
+            variance: variance,
+            variancePct: variancePct,
+            assessment: assessment
+          };
+        });
+
+        dom.varianceTableBody.innerHTML = rows.map(function (row) {
+          const isPercentage = row.type === "margin";
+          return '' +
+            '<tr>' +
+              '<td>' + escapeHtml(row.label) + '</td>' +
+              '<td class="text-right">' + escapeHtml(formatValue(row.actualValue, isPercentage)) + '</td>' +
+              '<td class="text-right">' + escapeHtml(formatValue(row.budgetValue, isPercentage)) + '</td>' +
+              '<td class="text-right">' + escapeHtml(isPercentage ? formatSignedPoints(row.variance) + (isFiniteNumber(row.variance) ? ' pp' : '') : formatSignedValue(row.variance, false)) + '</td>' +
+              '<td class="text-right">' + escapeHtml(formatVariancePercent(row.variancePct)) + '</td>' +
+              '<td class="text-right"><span class="assessment-chip ' + row.assessment.className + '">' + escapeHtml(row.assessment.label) + '</span></td>' +
+            '</tr>';
+        }).join("");
+
+        return rows;
+      }
+
+      function buildComparablePeriodSummary(metricId) {
+        const actualSeries = buildAggregatedSeries(state.data.actual, state.controls.period);
+        const budgetSeries = buildAggregatedSeries(state.data.budget, state.controls.period);
+        const actualMap = Object.fromEntries(actualSeries.map(function (record) { return [record.key, record]; }));
+        const budgetMap = Object.fromEntries(budgetSeries.map(function (record) { return [record.key, record]; }));
+        const sharedKeys = actualSeries.map(function (record) { return record.key; }).filter(function (key) { return key in budgetMap; }).sort();
+        if (!sharedKeys.length) return null;
+        const latestKey = sharedKeys[sharedKeys.length - 1];
+        return {
+          key: latestKey,
+          label: periodLabel(state.controls.period, latestKey),
+          actual: getMetricValueFromRecord(actualMap[latestKey].metrics, metricId),
+          budget: getMetricValueFromRecord(budgetMap[latestKey].metrics, metricId)
+        };
+      }
+
+      function renderInsights(varianceRows) {
+        const items = [];
+        const actualSeries = buildAggregatedSeries(state.data.actual, state.controls.period);
+        const primarySeries = buildAggregatedSeries(state.data[getPrimarySheetName()], state.controls.period);
+        const latestPrimary = primarySeries[primarySeries.length - 1];
+        const previousPrimary = primarySeries[primarySeries.length - 2];
+        const latestActual = actualSeries[actualSeries.length - 1];
+        const previousActual = actualSeries[actualSeries.length - 2];
+
+        const revenueNow = getMetricValueFromRecord(latestActual && latestActual.metrics, "revenue");
+        const revenuePrev = getMetricValueFromRecord(previousActual && previousActual.metrics, "revenue");
+        if (isFiniteNumber(revenueNow) && isFiniteNumber(revenuePrev) && revenuePrev !== 0) {
+          const change = ((revenueNow - revenuePrev) / Math.abs(revenuePrev)) * 100;
+          items.push(
+            "Doanh thu Actual " + latestActual.label + " đạt " + formatValue(revenueNow, false) + " tỷ VND, " + (change >= 0 ? "tăng " : "giảm ") + formatValue(Math.abs(change), true) + " so với " + previousActual.label + "."
+          );
+        } else {
+          items.push("Data not available for revenue trend versus the prior period.");
+        }
+
+        const selectedMetricSummary = buildComparablePeriodSummary(state.controls.metricId);
+        const selectedMetric = getMetricOption(state.controls.metricId);
+        if (selectedMetricSummary && isFiniteNumber(selectedMetricSummary.actual) && isFiniteNumber(selectedMetricSummary.budget)) {
+          const variance = selectedMetricSummary.actual - selectedMetricSummary.budget;
+          const assessment = evaluateVarianceAssessment(selectedMetric.type === "value" ? "value" : "margin", selectedMetricSummary.actual, selectedMetricSummary.budget);
+          items.push(
+            selectedMetric.label + " tại " + selectedMetricSummary.label + " ghi nhận " + formatValue(selectedMetricSummary.actual, selectedMetric.type === "margin") +
+            (selectedMetric.type === "margin" ? "" : " tỷ VND") + " so với Budget " + formatValue(selectedMetricSummary.budget, selectedMetric.type === "margin") +
+            (selectedMetric.type === "margin" ? "" : " tỷ VND") + ", chênh lệch " + (selectedMetric.type === "margin" ? formatSignedPoints(variance) + " pp" : formatSignedValue(variance, false) + " tỷ VND") +
+            " (" + assessment.label + ")."
+          );
+        } else {
+          items.push("Data not available for Actual versus Budget on the selected metric.");
+        }
+
+        const biggestVariance = (varianceRows || []).filter(function (row) {
+          return isFiniteNumber(row.variance);
+        }).sort(function (a, b) {
+          return Math.abs(b.variance) - Math.abs(a.variance);
+        })[0];
+        if (biggestVariance) {
+          items.push(
+            "Biến động YTD lớn nhất đến " + formatMonthLabelFromKey(getLatestSharedMonthKey()) + " nằm ở " + biggestVariance.label + ": " +
+            (biggestVariance.type === "margin" ? formatSignedPoints(biggestVariance.variance) + " pp" : formatSignedValue(biggestVariance.variance, false) + " tỷ VND") +
+            ", được đánh giá là " + biggestVariance.assessment.label.toLowerCase() + "."
+          );
+        } else {
+          items.push("Data not available for the largest favorable/unfavorable YTD variance.");
+        }
+
+        const gmNow = getMetricValueFromRecord(latestActual && latestActual.metrics, "grossMargin");
+        const gmPrev = getMetricValueFromRecord(previousActual && previousActual.metrics, "grossMargin");
+        if (isFiniteNumber(gmNow) && isFiniteNumber(gmPrev)) {
+          const delta = gmNow - gmPrev;
+          items.push(
+            "Gross margin Actual tại " + latestActual.label + " đạt " + formatValue(gmNow, true) + ", " + (delta >= 0 ? "cải thiện " : "thu hẹp ") + formatValue(Math.abs(delta), false) + " pp so với " + previousActual.label + "."
+          );
+        } else {
+          items.push("Data not available for gross margin movement.");
+        }
+
+        const latestForStructure = latestPrimary;
+        if (latestForStructure) {
+          const productValues = [
+            { label: "Sản phẩm 1", value: getMetricValueFromRecord(latestForStructure.metrics, "product1") },
+            { label: "Sản phẩm 2", value: getMetricValueFromRecord(latestForStructure.metrics, "product2") },
+            { label: "Sản phẩm 3", value: getMetricValueFromRecord(latestForStructure.metrics, "product3") }
+          ].filter(function (entry) { return isFiniteNumber(entry.value); });
+          const revenue = getMetricValueFromRecord(latestForStructure.metrics, "revenue");
+          if (productValues.length && isFiniteNumber(revenue) && revenue !== 0) {
+            productValues.sort(function (a, b) { return b.value - a.value; });
+            const leader = productValues[0];
+            const share = (leader.value / revenue) * 100;
+            items.push(
+              leader.label + " là nguồn doanh thu lớn nhất trong " + latestForStructure.label + ", đóng góp " + formatValue(leader.value, false) + " tỷ VND, tương đương " + formatValue(share, true) + " tổng doanh thu."
+            );
+          } else {
+            items.push("Data not available for product-line contribution.");
+          }
+        } else {
+          items.push("Data not available for product-line contribution.");
+        }
+
+        const fallbackNeeded = items.every(function (item) {
+          return /^Data not available/i.test(item);
+        });
+        dom.insightsList.innerHTML = (fallbackNeeded ? ["Data not available – insufficient information to generate insights."] : items.slice(0, 5)).map(function (item) {
+          return "<li>" + escapeHtml(item) + "</li>";
+        }).join("");
+      }
+
+      function updateSourceSummary() {
+        setPillState(dom.dataStatus, state.sourceLabel, "good");
+        dom.workbookSummary.textContent = state.sourceLabel + ". Dashboard logic refreshes on every file upload, re-upload, and filter change.";
+      }
+
+      function refreshDashboard() {
+        if (!state.data) return;
+        setValidationMessage("");
+        renderKpis();
+        renderIncomeTrendChart();
+        renderComparisonChart();
+        renderRevenueStructureChart();
+        renderScopeAnalysisChart();
+        const varianceRows = renderVarianceTable();
+        renderInsights(varianceRows);
+        updateSourceSummary();
+      }
+
+      function validateWorkbook(workbook) {
+        const missingSheets = ["Actual", "Budget"].filter(function (sheetName) {
+          return !workbook.Sheets || !workbook.Sheets[sheetName];
+        });
+        if (missingSheets.length) {
+          throw new Error("Missing required sheet(s): " + missingSheets.join(", ") + ".");
+        }
+      }
+
+      function parseWorkbook(workbook) {
+        validateWorkbook(workbook);
+        const parsed = {
+          actual: parseSheet(workbook.Sheets.Actual, "Actual"),
+          budget: parseSheet(workbook.Sheets.Budget, "Budget")
+        };
+        if (!parsed.actual.monthKeys.length || !parsed.budget.monthKeys.length) {
+          throw new Error("Unable to detect monthly columns in one or both required sheets.");
+        }
+        return parsed;
+      }
+
+      function applyParsedData(parsedData, sourceLabel) {
+        state.data = parsedData;
+        state.sourceLabel = sourceLabel;
+        refreshDashboard();
+      }
+
+      async function handleFileUpload(file) {
+        if (!file) return;
+        if (!state.libraries.xlsx) {
+          setValidationMessage("SheetJS/xlsx is unavailable, so the uploaded workbook cannot be parsed right now.");
+          return;
+        }
+
+        setValidationMessage("");
+        setPillState(dom.uploadStatus, "Parsing workbook…", "pending");
+
+        try {
+          const buffer = await file.arrayBuffer();
+          const workbook = window.XLSX.read(buffer, { type: "array", cellDates: true });
+          const parsed = parseWorkbook(workbook);
+          applyParsedData(parsed, "Loaded workbook: " + file.name);
+          setPillState(dom.uploadStatus, "Workbook loaded", "good");
+        } catch (error) {
+          console.error(error);
+          setValidationMessage("Workbook validation error: " + error.message + " The previous dataset remains active.");
+          setPillState(dom.uploadStatus, "Upload failed", "bad");
+        }
+      }
+
+      function bindEvents() {
+        dom.periodSelect.addEventListener("change", function () {
+          state.controls.period = dom.periodSelect.value;
+          refreshDashboard();
+        });
+
+        dom.metricSelect.addEventListener("change", function () {
+          state.controls.metricId = dom.metricSelect.value;
+          refreshDashboard();
+        });
+
+        dom.scopeSelect.addEventListener("change", function () {
+          state.controls.scope = dom.scopeSelect.value;
+          refreshDashboard();
+        });
+
+        function ensureAtLeastOneView(changedElement) {
+          if (!dom.actualToggle.checked && !dom.budgetToggle.checked) {
+            changedElement.checked = true;
+          }
+          state.controls.showActual = dom.actualToggle.checked;
+          state.controls.showBudget = dom.budgetToggle.checked;
+          refreshDashboard();
+        }
+
+        dom.actualToggle.addEventListener("change", function () { ensureAtLeastOneView(dom.actualToggle); });
+        dom.budgetToggle.addEventListener("change", function () { ensureAtLeastOneView(dom.budgetToggle); });
+
+        dom.excelUpload.addEventListener("click", function (event) {
+          event.target.value = "";
+        });
+
+        dom.excelUpload.addEventListener("change", function (event) {
+          const file = event.target.files && event.target.files[0];
+          handleFileUpload(file);
+        });
+      }
+
+      async function init() {
+        cacheDom();
+        populateSelectors();
+        bindEvents();
+        applyParsedData(createEmbeddedSampleDataset(), "Embedded starter data");
+        await initializeLibraries();
+        refreshDashboard();
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
