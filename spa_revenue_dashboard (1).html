@@ -1,0 +1,2126 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Doanh Thu Spa / Beauty</title>
+
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <!-- SheetJS / xlsx -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #f7efe9;
+      --bg-soft: #fbf7f3;
+      --card: rgba(255, 250, 246, 0.56);
+      --card-strong: rgba(255, 250, 246, 0.74);
+      --stroke: rgba(184, 136, 118, 0.18);
+      --stroke-strong: rgba(184, 136, 118, 0.28);
+      --text: #4f3b36;
+      --text-soft: #8a7167;
+      --rose: #b88876;
+      --rose-strong: #a96f5b;
+      --rose-soft: #e6c6b9;
+      --beige: #ead8cc;
+      --sand: #d9c2b4;
+      --success: #6b9b7b;
+      --warning: #d18f58;
+      --danger: #c96f73;
+      --shadow: 0 16px 50px rgba(131, 93, 77, 0.10);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 18px;
+      --blur: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(233, 205, 191, 0.55), transparent 28%),
+        radial-gradient(circle at top right, rgba(201, 157, 140, 0.28), transparent 24%),
+        linear-gradient(180deg, #f9f3ef 0%, #f5ebe4 54%, #f2e6de 100%);
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255,255,255,0.55), transparent 12%),
+        radial-gradient(circle at 85% 12%, rgba(255,255,255,0.38), transparent 14%),
+        radial-gradient(circle at 55% 80%, rgba(255,255,255,0.24), transparent 18%);
+      z-index: 0;
+    }
+
+    .app-shell {
+      position: relative;
+      z-index: 1;
+      width: min(1440px, calc(100% - 28px));
+      margin: 20px auto 40px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .glass-card {
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(var(--blur));
+      -webkit-backdrop-filter: blur(var(--blur));
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.45fr 0.85fr;
+      gap: 18px;
+      padding: 28px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      right: -80px;
+      top: -80px;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(184, 136, 118, 0.18), rgba(184, 136, 118, 0));
+      pointer-events: none;
+    }
+
+    .hero-title {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 46px);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+
+    .hero-subtitle {
+      margin: 14px 0 22px;
+      max-width: 760px;
+      color: var(--text-soft);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.45);
+      border: 1px solid rgba(184,136,118,0.16);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--rose);
+      flex: 0 0 auto;
+      box-shadow: 0 0 0 4px rgba(184,136,118,0.10);
+    }
+
+    .hero-side {
+      display: grid;
+      gap: 14px;
+      align-self: stretch;
+    }
+
+    .summary-card {
+      padding: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,250,246,0.62) 100%);
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(184,136,118,0.18);
+      min-height: 100%;
+      display: grid;
+      gap: 16px;
+    }
+
+    .summary-eyebrow {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-soft);
+      font-weight: 700;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .summary-item {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.46);
+      border: 1px solid rgba(184,136,118,0.12);
+    }
+
+    .summary-label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-soft);
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .toolbar {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1.2fr 0.9fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .toolbar-block {
+      padding: 18px;
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.32);
+      border: 1px solid rgba(184,136,118,0.12);
+    }
+
+    .toolbar-title {
+      margin: 0 0 14px;
+      font-size: 13px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-weight: 700;
+    }
+
+    .filters-grid,
+    .upload-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .upload-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-soft);
+    }
+
+    select,
+    input[type="file"] {
+      width: 100%;
+      border: 1px solid rgba(184,136,118,0.18);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.62);
+      color: var(--text);
+      padding: 12px 14px;
+      font: inherit;
+      outline: none;
+      transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    select:focus,
+    input[type="file"]:focus {
+      border-color: rgba(184,136,118,0.56);
+      box-shadow: 0 0 0 5px rgba(184,136,118,0.12);
+    }
+
+    select:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      background: rgba(245, 239, 235, 0.84);
+    }
+
+    .upload-status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .upload-note,
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.45);
+      border: 1px solid rgba(184,136,118,0.15);
+      color: var(--text);
+    }
+
+    .status-chip.success { border-color: rgba(107,155,123,0.28); color: #4d755a; }
+    .status-chip.warning { border-color: rgba(209,143,88,0.28); color: #9c663d; }
+    .status-chip.danger { border-color: rgba(201,111,115,0.28); color: #9e5054; }
+
+    .error-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      background: rgba(201,111,115,0.12);
+      border: 1px solid rgba(201,111,115,0.18);
+      color: #925153;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .hidden { display: none !important; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .kpi-card {
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      min-height: 144px;
+    }
+
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      right: -40px;
+      bottom: -40px;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(184,136,118,0.18), rgba(184,136,118,0));
+      pointer-events: none;
+    }
+
+    .kpi-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .kpi-value {
+      margin-top: 18px;
+      font-size: clamp(24px, 2.8vw, 38px);
+      line-height: 1.12;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      word-break: break-word;
+    }
+
+    .kpi-subtext {
+      margin-top: 10px;
+      color: var(--text-soft);
+      font-size: 13px;
+      line-height: 1.6;
+      max-width: 90%;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .chart-card,
+    .detail-card {
+      padding: 18px 18px 14px;
+    }
+
+    .chart-head,
+    .detail-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .chart-title,
+    .detail-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .chart-caption,
+    .detail-subtitle {
+      margin: 6px 0 0;
+      color: var(--text-soft);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 330px;
+      width: 100%;
+    }
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 18px;
+    }
+
+    .insights-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .insight-item {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.46);
+      border: 1px solid rgba(184,136,118,0.12);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .insight-item strong {
+      color: var(--rose-strong);
+    }
+
+    .mapping-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .mapping-item {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.42);
+      border: 1px solid rgba(184,136,118,0.12);
+    }
+
+    .mapping-label {
+      display: block;
+      color: var(--text-soft);
+      font-size: 12px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+
+    .mapping-value {
+      font-size: 14px;
+      line-height: 1.6;
+      font-weight: 600;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: var(--text-soft);
+      font-size: 12px;
+      padding: 8px 0 0;
+    }
+
+    @media (max-width: 1180px) {
+      .hero,
+      .toolbar,
+      .bottom-grid,
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 820px) {
+      .app-shell {
+        width: min(100% - 18px, 100%);
+        margin-top: 10px;
+        gap: 14px;
+      }
+
+      .hero,
+      .toolbar,
+      .chart-card,
+      .detail-card,
+      .kpi-card {
+        padding: 16px;
+      }
+
+      .filters-grid,
+      .summary-grid,
+      .mapping-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .kpi-grid,
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-wrap {
+        height: 280px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <section class="hero glass-card">
+      <div>
+        <h1 class="hero-title">Dashboard Doanh Thu Spa / Beauty</h1>
+        <p class="hero-subtitle">
+          Giao diện phân tích doanh thu spa / beauty theo phong cách hiện đại, sang trọng và kính mờ.
+          Dashboard hỗ trợ dữ liệu Excel tổng hợp theo năm × chi nhánh, đồng thời cố gắng tự suy luận nếu bạn upload file transaction dạng từng dòng.
+        </p>
+        <div class="badge-row">
+          <div class="badge"><span class="badge-dot"></span><span id="datasetBadge">Dataset: Demo</span></div>
+          <div class="badge"><span class="badge-dot"></span><span id="monthSupportBadge">Bộ lọc tháng: Tự động</span></div>
+          <div class="badge"><span class="badge-dot"></span><span id="modelBadge">Mô hình dữ liệu: Đang nhận diện</span></div>
+        </div>
+      </div>
+
+      <div class="hero-side">
+        <div class="summary-card glass-card">
+          <div>
+            <div class="summary-eyebrow">Tổng quan dataset</div>
+            <div style="margin-top:8px;font-size:24px;font-weight:800;letter-spacing:-0.03em;">Bức tranh hiệu suất kinh doanh</div>
+          </div>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <span class="summary-label">Khoảng dữ liệu</span>
+              <div class="summary-value" id="summaryRange">-</div>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Điểm dữ liệu hợp lệ</span>
+              <div class="summary-value" id="summaryPoints">-</div>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Số chi nhánh</span>
+              <div class="summary-value" id="summaryBranches">-</div>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Số nguồn khách</span>
+              <div class="summary-value" id="summarySources">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="toolbar glass-card">
+      <div class="toolbar-block">
+        <h3 class="toolbar-title">Bộ lọc dữ liệu</h3>
+        <div class="filters-grid">
+          <div class="field">
+            <label for="yearFilter">Năm</label>
+            <select id="yearFilter"></select>
+          </div>
+          <div class="field">
+            <label for="monthFilter">Tháng</label>
+            <select id="monthFilter"></select>
+          </div>
+          <div class="field">
+            <label for="branchFilter">Chi nhánh</label>
+            <select id="branchFilter"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar-block">
+        <h3 class="toolbar-title">Upload Excel</h3>
+        <div class="upload-grid">
+          <div class="field">
+            <label for="fileInput">Chọn file .xlsx / .xls</label>
+            <input id="fileInput" type="file" accept=".xlsx,.xls" />
+          </div>
+        </div>
+        <div class="upload-status">
+          <div id="uploadStatus" class="status-chip">Chưa upload file, đang dùng dữ liệu demo nhúng sẵn</div>
+          <div id="monthHint" class="upload-note">Trạng thái tháng sẽ tự cập nhật theo cấu trúc dữ liệu</div>
+        </div>
+      </div>
+    </section>
+
+    <div id="errorBanner" class="error-banner hidden"></div>
+
+    <section class="kpi-grid">
+      <div class="kpi-card glass-card">
+        <div class="kpi-label">Tổng doanh thu</div>
+        <div class="kpi-value" id="kpiRevenue">-</div>
+        <div class="kpi-subtext" id="kpiRevenueSub">Tổng doanh thu theo bộ lọc hiện tại</div>
+      </div>
+      <div class="kpi-card glass-card">
+        <div class="kpi-label" id="kpiVolumeLabel">Số lượng bán</div>
+        <div class="kpi-value" id="kpiVolume">-</div>
+        <div class="kpi-subtext" id="kpiVolumeSub">Sản lượng hoặc số lượng khách</div>
+      </div>
+      <div class="kpi-card glass-card">
+        <div class="kpi-label">AOV / Giá trị trung bình</div>
+        <div class="kpi-value" id="kpiAov">-</div>
+        <div class="kpi-subtext" id="kpiAovSub">Giá trị trung bình trên đơn vị đo chính</div>
+      </div>
+      <div class="kpi-card glass-card">
+        <div class="kpi-label">Tỷ lệ chốt sales</div>
+        <div class="kpi-value" id="kpiCloseRate">-</div>
+        <div class="kpi-subtext" id="kpiCloseRateSub">Hiệu suất chuyển đổi theo dữ liệu đã parse</div>
+      </div>
+    </section>
+
+    <section class="section-grid">
+      <div class="chart-card glass-card">
+        <div class="chart-head">
+          <div>
+            <h3 class="chart-title" id="trendTitle">Xu hướng doanh thu</h3>
+            <p class="chart-caption" id="trendCaption">Tự động đổi theo kiểu dữ liệu và bộ lọc hiện tại</p>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+      </div>
+
+      <div class="chart-card glass-card">
+        <div class="chart-head">
+          <div>
+            <h3 class="chart-title">So sánh doanh thu theo chi nhánh</h3>
+            <p class="chart-caption">Doanh thu tổng hợp giữa các chi nhánh</p>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="branchChart"></canvas></div>
+      </div>
+
+      <div class="chart-card glass-card">
+        <div class="chart-head">
+          <div>
+            <h3 class="chart-title">Cơ cấu nguồn khách / kênh bán hàng</h3>
+            <p class="chart-caption">Tỷ trọng doanh thu theo nguồn khách</p>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="sourceChart"></canvas></div>
+      </div>
+
+      <div class="chart-card glass-card">
+        <div class="chart-head">
+          <div>
+            <h3 class="chart-title">Tỷ lệ chốt sales</h3>
+            <p class="chart-caption" id="closeRateCaption">Hiển thị tự động theo loại dữ liệu</p>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="closeRateChart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="bottom-grid">
+      <div class="detail-card glass-card">
+        <div class="detail-head">
+          <div>
+            <h3 class="detail-title">Insight tự động</h3>
+            <p class="detail-subtitle">4 nhận định ngắn được sinh từ dữ liệu hiện tại</p>
+          </div>
+        </div>
+        <div class="insights-list" id="insightsList"></div>
+      </div>
+
+      <div class="detail-card glass-card">
+        <div class="detail-head">
+          <div>
+            <h3 class="detail-title">Giải thích mapping dữ liệu</h3>
+            <p class="detail-subtitle">Dashboard đang nhận diện và map dữ liệu theo các chỉ dấu bên dưới</p>
+          </div>
+        </div>
+        <div class="mapping-grid" id="mappingGrid"></div>
+      </div>
+    </section>
+
+    <div class="footer-note">
+      HTML đơn lẻ • chạy hoàn toàn phía client • hỗ trợ dữ liệu demo và upload Excel trực tiếp trên trình duyệt
+    </div>
+  </div>
+
+  <script>
+    // ==============================
+    // Demo dataset theo đúng cấu trúc ma trận mẫu
+    // ==============================
+    const DEMO_MATRIX_ROWS = [
+      ["Hạng mục", "Năm 2022", "Năm 2022", "Năm 2022", "Năm 2023", "Năm 2023", "Năm 2023", "Năm 2024", "Năm 2024", "Năm 2024"],
+      ["Chi nhánh", "Chi nhánh Quận 1", "Chi nhánh Phú Mỹ Hưng", "Chi nhánh Hà Nội", "Chi nhánh Quận 1", "Chi nhánh Phú Mỹ Hưng", "Chi nhánh Hà Nội", "Chi nhánh Quận 1", "Chi nhánh Phú Mỹ Hưng", "Chi nhánh Hà Nội"],
+      ["Doanh thu theo nhóm sản phẩm", "", "", "", "", "", "", "", "", ""],
+      ["Gói nâng cao", 4200000000, 3500000000, 2800000000, 5100000000, 4200000000, 3300000000, 6200000000, 5200000000, 4200000000],
+      ["Gói cơ bản", 1800000000, 1500000000, 1200000000, 2100000000, 1800000000, 1350000000, 2400000000, 2000000000, 1600000000],
+      ["Doanh thu theo nguồn khách hàng", "", "", "", "", "", "", "", "", ""],
+      ["Khách cũ", 2500000000, 2200000000, 1700000000, 3100000000, 2600000000, 2100000000, 3800000000, 3200000000, 2500000000],
+      ["Offline", 1800000000, 1400000000, 1200000000, 2200000000, 1700000000, 1250000000, 2600000000, 2100000000, 1800000000],
+      ["Online", 1700000000, 1400000000, 1100000000, 1800000000, 1700000000, 1350000000, 2200000000, 1900000000, 1700000000],
+      ["Số lượng bán", "", "", "", "", "", "", "", "", ""],
+      ["Gói nâng cao", 280, 235, 188, 320, 280, 216, 365, 310, 255],
+      ["Gói cơ bản", 420, 360, 290, 470, 400, 315, 520, 455, 360],
+      ["Đơn giá trung bình", "", "", "", "", "", "", "", "", ""],
+      ["Gói nâng cao", 15000000, 14893617, 14893617, 15937500, 15000000, 15277778, 16986301, 16774194, 16470588],
+      ["Gói cơ bản", 4285714, 4166667, 4137931, 4468085, 4500000, 4285714, 4615385, 4395604, 4444444],
+      ["Tỷ lệ chốt sales", 0.28, 0.26, 0.24, 0.31, 0.29, 0.27, 0.34, 0.32, 0.30]
+    ];
+
+    const appState = {
+      dataset: null,
+      filters: {
+        year: 'ALL',
+        month: 'ALL',
+        branch: 'ALL'
+      },
+      charts: {}
+    };
+
+    const COLOR_SET = {
+      rose: 'rgba(184, 136, 118, 0.95)',
+      roseSoft: 'rgba(184, 136, 118, 0.24)',
+      rosePale: 'rgba(230, 198, 185, 0.9)',
+      beige: 'rgba(234, 216, 204, 0.95)',
+      sand: 'rgba(217, 194, 180, 0.95)',
+      softBrown: 'rgba(143, 107, 94, 0.92)',
+      warmGold: 'rgba(209, 163, 126, 0.95)',
+      mint: 'rgba(133, 169, 150, 0.92)',
+      slate: 'rgba(115, 96, 90, 0.92)',
+      neutralLine: 'rgba(138, 113, 103, 0.20)',
+      palette: [
+        'rgba(184, 136, 118, 0.95)',
+        'rgba(209, 163, 126, 0.95)',
+        'rgba(217, 194, 180, 0.95)',
+        'rgba(143, 107, 94, 0.92)',
+        'rgba(133, 169, 150, 0.92)',
+        'rgba(230, 198, 185, 0.95)',
+        'rgba(170, 124, 110, 0.92)'
+      ]
+    };
+
+    document.addEventListener('DOMContentLoaded', initDashboard);
+
+    function initDashboard() {
+      bindEvents();
+      loadDemoDataset();
+    }
+
+    function bindEvents() {
+      document.getElementById('yearFilter').addEventListener('change', (event) => {
+        appState.filters.year = event.target.value;
+        renderDashboard();
+      });
+
+      document.getElementById('monthFilter').addEventListener('change', (event) => {
+        appState.filters.month = event.target.value;
+        renderDashboard();
+      });
+
+      document.getElementById('branchFilter').addEventListener('change', (event) => {
+        appState.filters.branch = event.target.value;
+        renderDashboard();
+      });
+
+      document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+    }
+
+    function loadDemoDataset() {
+      try {
+        const detect = detectMatrixDataset(DEMO_MATRIX_ROWS);
+        if (!detect.isMatrix) throw new Error('Không nhận diện được dữ liệu demo.');
+        const demoDataset = parseMatrixDataset(DEMO_MATRIX_ROWS, 'Dữ liệu demo spa cao cấp');
+        demoDataset.isDemo = true;
+        setDataset(demoDataset);
+        setUploadStatus('Chưa upload file, đang dùng dữ liệu demo nhúng sẵn', 'warning');
+      } catch (error) {
+        showFriendlyError('Không thể khởi tạo dữ liệu demo.', error.message);
+      }
+    }
+
+    async function handleFileUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      clearError();
+      setUploadStatus(`Đang đọc file: ${file.name}`, 'warning');
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, {
+          type: 'array',
+          cellDates: true,
+          cellNF: true,
+          cellText: true
+        });
+
+        const dataset = parseWorkbook(workbook, file.name);
+        dataset.isDemo = false;
+        setDataset(dataset);
+        setUploadStatus(`Đã parse thành công: ${file.name}`, 'success');
+      } catch (error) {
+        showFriendlyError(
+          'Không thể parse file Excel. Dashboard vẫn giữ nguyên dữ liệu trước đó để tránh vỡ layout.',
+          error.message
+        );
+        setUploadStatus(`Parse lỗi: ${file.name}`, 'danger');
+      }
+    }
+
+    function parseWorkbook(workbook, datasetName) {
+      if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
+        throw new Error('Workbook không có sheet hợp lệ.');
+      }
+
+      let selectedRows = null;
+      let selectedSheetName = null;
+
+      for (const sheetName of workbook.SheetNames) {
+        const sheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, {
+          header: 1,
+          raw: false,
+          defval: ''
+        });
+
+        if (Array.isArray(rows) && rows.some((row) => Array.isArray(row) && row.some((cell) => String(cell).trim() !== ''))) {
+          selectedRows = rows;
+          selectedSheetName = sheetName;
+          break;
+        }
+      }
+
+      if (!selectedRows) {
+        throw new Error('Không tìm thấy sheet đầu tiên có dữ liệu.');
+      }
+
+      const matrixDetect = detectMatrixDataset(selectedRows);
+      let dataset;
+
+      if (matrixDetect.isMatrix) {
+        dataset = parseMatrixDataset(selectedRows, datasetName);
+      } else {
+        dataset = parseTransactionDataset(selectedRows, datasetName);
+      }
+
+      dataset.sheetName = selectedSheetName;
+      return dataset;
+    }
+
+    // ==============================
+    // Detect & Normalize helpers
+    // ==============================
+    function normalizeText(value) {
+      if (value === null || value === undefined) return '';
+      return String(value)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .toLowerCase()
+        .replace(/[%]/g, ' phan tram ')
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function parseNumber(value) {
+      if (value === null || value === undefined || value === '') return null;
+      if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+      if (typeof value === 'boolean') return value ? 1 : 0;
+
+      let text = String(value).trim();
+      if (!text) return null;
+
+      const isPercent = text.includes('%');
+      let negative = false;
+
+      if (text.startsWith('(') && text.endsWith(')')) {
+        negative = true;
+        text = text.slice(1, -1);
+      }
+
+      text = text
+        .replace(/[₫$€£¥]/g, '')
+        .replace(/vnd/gi, '')
+        .replace(/\s/g, '')
+        .replace(/[^0-9,.-]/g, '');
+
+      const hasComma = text.includes(',');
+      const hasDot = text.includes('.');
+
+      if (hasComma && hasDot) {
+        if (text.lastIndexOf(',') > text.lastIndexOf('.')) {
+          text = text.replace(/\./g, '').replace(',', '.');
+        } else {
+          text = text.replace(/,/g, '');
+        }
+      } else if (hasComma) {
+        const commaCount = (text.match(/,/g) || []).length;
+        const decimalPart = text.split(',').pop();
+        if (commaCount === 1 && decimalPart.length <= 2) {
+          text = text.replace(',', '.');
+        } else {
+          text = text.replace(/,/g, '');
+        }
+      } else if (hasDot) {
+        const dotCount = (text.match(/\./g) || []).length;
+        const decimalPart = text.split('.').pop();
+        if (!(dotCount === 1 && decimalPart.length <= 2)) {
+          text = text.replace(/\./g, '');
+        }
+      }
+
+      text = text.replace(/[^0-9.-]/g, '');
+      if (!text || text === '-' || text === '.') return null;
+
+      let number = Number(text);
+      if (!Number.isFinite(number)) return null;
+      if (negative) number *= -1;
+
+      if (isPercent && number > 1) number /= 100;
+      return number;
+    }
+
+    function parseExcelDate(value) {
+      if (value === null || value === undefined || value === '') return null;
+      if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+
+      if (typeof value === 'number') {
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        const parsed = new Date(excelEpoch.getTime() + value * 86400000);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+
+      const text = String(value).trim();
+      if (!text) return null;
+
+      const dmyMatch = text.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+      if (dmyMatch) {
+        const day = Number(dmyMatch[1]);
+        const month = Number(dmyMatch[2]) - 1;
+        const year = Number(dmyMatch[3].length === 2 ? `20${dmyMatch[3]}` : dmyMatch[3]);
+        const parsed = new Date(year, month, day);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+
+      const parsed = new Date(text);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function detectMatrixDataset(rows) {
+      const firstRow = rows?.[0] || [];
+      const secondRow = rows?.[1] || [];
+      const firstColumnLabels = rows.map((row) => normalizeText(row?.[0]));
+
+      const yearLikeCount = firstRow.filter((cell) => /(?:nam\s*)?(20\d{2})/.test(normalizeText(cell))).length;
+      const branchLikeCount = secondRow.filter((cell) => {
+        const norm = normalizeText(cell);
+        return norm.includes('chi nhanh') || norm.includes('branch') || norm.includes('co so');
+      }).length;
+
+      const sectionSignals = [
+        'doanh thu theo nhom san pham',
+        'doanh thu theo nguon khach hang',
+        'so luong ban',
+        'don gia trung binh',
+        'ty le chot sales'
+      ];
+
+      const matchedSections = sectionSignals.filter((section) =>
+        firstColumnLabels.some((label) => label.includes(section))
+      );
+
+      const confidence = [
+        yearLikeCount >= 2 ? 0.35 : 0,
+        branchLikeCount >= 2 ? 0.25 : 0,
+        matchedSections.length >= 3 ? 0.40 : matchedSections.length * 0.08
+      ].reduce((sum, value) => sum + value, 0);
+
+      return {
+        isMatrix: confidence >= 0.65,
+        confidence,
+        matchedSections,
+        yearLikeCount,
+        branchLikeCount
+      };
+    }
+
+    function extractYear(value) {
+      const match = String(value ?? '').match(/(20\d{2})/);
+      return match ? Number(match[1]) : null;
+    }
+
+    function findLastUsedColumn(rows, scanLimit = 8) {
+      let lastCol = 0;
+      const limit = Math.min(rows.length, scanLimit);
+      for (let r = 0; r < limit; r += 1) {
+        const row = rows[r] || [];
+        for (let c = row.length - 1; c >= 0; c -= 1) {
+          if (String(row[c] ?? '').trim() !== '') {
+            lastCol = Math.max(lastCol, c);
+            break;
+          }
+        }
+      }
+      return lastCol;
+    }
+
+    function detectSectionKey(label) {
+      const norm = normalizeText(label);
+      if (norm.includes('doanh thu theo nhom san pham')) return 'revenueProduct';
+      if (norm.includes('doanh thu theo nguon khach hang')) return 'sourceBreakdown';
+      if (norm.includes('so luong ban')) return 'quantity';
+      if (norm.includes('don gia trung binh')) return 'avgTicket';
+      if (norm.includes('ty le chot sales')) return 'closeRate';
+      return null;
+    }
+
+    function prettyRowIndex(index) {
+      return Number.isFinite(index) ? `Dòng ${index + 1}` : 'Không tìm thấy';
+    }
+
+    function getUniqueSorted(values) {
+      return [...new Set(values.filter((value) => value !== null && value !== undefined && value !== ''))]
+        .sort((a, b) => (a > b ? 1 : a < b ? -1 : 0));
+    }
+
+    function inferHeaderRow(rows) {
+      let bestIndex = 0;
+      let bestScore = -Infinity;
+      const aliases = [
+        'ngay', 'date', 'doanh thu', 'revenue', 'chi nhanh', 'branch', 'khach', 'customer', 'nguon', 'source', 'sales', 'chot', 'close', 'status'
+      ];
+
+      for (let i = 0; i < Math.min(rows.length, 8); i += 1) {
+        const row = rows[i] || [];
+        const nonEmpty = row.filter((cell) => String(cell ?? '').trim() !== '').length;
+        const score = row.reduce((sum, cell) => {
+          const norm = normalizeText(cell);
+          const matched = aliases.some((alias) => norm.includes(alias)) ? 2 : 0;
+          return sum + matched;
+        }, nonEmpty);
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestIndex = i;
+        }
+      }
+      return bestIndex;
+    }
+
+    function findColumnIndexByAliases(headers, aliasGroups) {
+      const normalized = headers.map((header) => normalizeText(header));
+      let bestIndex = -1;
+      let bestScore = 0;
+
+      normalized.forEach((header, index) => {
+        let score = 0;
+        aliasGroups.forEach((group) => {
+          if (Array.isArray(group)) {
+            if (group.every((keyword) => header.includes(keyword))) score += group.length + 1;
+          } else if (header.includes(group)) {
+            score += 1;
+          }
+        });
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestIndex = index;
+        }
+      });
+
+      return bestScore > 0 ? bestIndex : -1;
+    }
+
+    function parseCloseStatus(value) {
+      const norm = normalizeText(value);
+      if (!norm) return null;
+
+      const positives = ['da chot', 'closed', 'won', 'success', 'thanh cong', 'done', 'yes', 'true', 'ok', 'chot'];
+      const negatives = ['khong chot', 'not closed', 'lost', 'failed', 'no', 'false', 'cancel', 'huy', 'pending'];
+
+      if (negatives.some((key) => norm.includes(key))) return false;
+      if (positives.some((key) => norm.includes(key))) return true;
+
+      const numeric = parseNumber(value);
+      if (numeric === 1) return true;
+      if (numeric === 0) return false;
+      return null;
+    }
+
+    // ==============================
+    // Matrix parser
+    // ==============================
+    function parseMatrixDataset(rows, datasetName = 'Dataset ma trận') {
+      const detect = detectMatrixDataset(rows);
+      if (!detect.isMatrix) throw new Error('File không khớp dạng ma trận tổng hợp theo năm × chi nhánh.');
+
+      const yearRowIndex = 0;
+      const branchRowIndex = 1;
+      const lastUsedColumn = findLastUsedColumn(rows);
+
+      const columns = [];
+      for (let col = 1; col <= lastUsedColumn; col += 1) {
+        const year = extractYear(rows[yearRowIndex]?.[col]);
+        const branchCell = rows[branchRowIndex]?.[col];
+        const branch = String(branchCell ?? '').trim();
+        if (year || branch) {
+          columns.push({
+            colIndex: col,
+            year: year || 'Không rõ năm',
+            branch: branch || `Chi nhánh ${col}`
+          });
+        }
+      }
+
+      if (columns.length === 0) {
+        throw new Error('Không tìm thấy cột dữ liệu năm + chi nhánh hợp lệ trong file ma trận.');
+      }
+
+      const sectionRows = [];
+      rows.forEach((row, rowIndex) => {
+        const key = detectSectionKey(row?.[0]);
+        if (key) sectionRows.push({ key, rowIndex, label: row?.[0] });
+      });
+
+      if (sectionRows.length < 3) {
+        throw new Error('Không đủ section để parse dữ liệu ma trận.');
+      }
+
+      const pairs = columns.map((meta) => ({
+        year: meta.year,
+        branch: meta.branch,
+        revenueByProduct: {},
+        sourceBreakdown: {},
+        quantityByProduct: {},
+        avgTicketByProduct: {},
+        revenueTotal: 0,
+        quantityTotal: 0,
+        avgTicket: null,
+        closeRate: null
+      }));
+
+      const pairByColumn = Object.fromEntries(columns.map((meta, index) => [meta.colIndex, pairs[index]]));
+      const getNextSectionRow = (currentRowIndex) => {
+        const next = sectionRows.find((section) => section.rowIndex > currentRowIndex);
+        return next ? next.rowIndex : rows.length;
+      };
+
+      sectionRows.forEach((section) => {
+        const start = section.rowIndex;
+        const end = getNextSectionRow(start);
+
+        if (section.key === 'closeRate') {
+          columns.forEach((meta) => {
+            const value = parseNumber(rows[start]?.[meta.colIndex]);
+            if (value !== null) pairByColumn[meta.colIndex].closeRate = value > 1 ? value / 100 : value;
+          });
+          return;
+        }
+
+        for (let rowIndex = start + 1; rowIndex < end; rowIndex += 1) {
+          const labelRaw = rows[rowIndex]?.[0];
+          const label = String(labelRaw ?? '').trim();
+          const normalizedLabel = normalizeText(label);
+          if (!label || detectSectionKey(label) || normalizedLabel === 'tong' || normalizedLabel === 'total') continue;
+
+          columns.forEach((meta) => {
+            const value = parseNumber(rows[rowIndex]?.[meta.colIndex]);
+            if (value === null) return;
+            const target = pairByColumn[meta.colIndex];
+
+            if (section.key === 'revenueProduct') {
+              target.revenueByProduct[label] = value;
+            } else if (section.key === 'sourceBreakdown') {
+              target.sourceBreakdown[label] = value;
+            } else if (section.key === 'quantity') {
+              target.quantityByProduct[label] = value;
+            } else if (section.key === 'avgTicket') {
+              target.avgTicketByProduct[label] = value;
+            }
+          });
+        }
+      });
+
+      pairs.forEach((pair) => {
+        pair.revenueTotal = sumValues(pair.revenueByProduct);
+        pair.quantityTotal = sumValues(pair.quantityByProduct);
+
+        const avgTicketFromSection = weightedAverageFromObjects(pair.avgTicketByProduct, pair.quantityByProduct);
+        if (avgTicketFromSection !== null) {
+          pair.avgTicket = avgTicketFromSection;
+        } else if (pair.quantityTotal > 0 && pair.revenueTotal > 0) {
+          pair.avgTicket = pair.revenueTotal / pair.quantityTotal;
+        }
+
+        if (pair.closeRate !== null && pair.closeRate > 1) pair.closeRate = pair.closeRate / 100;
+      });
+
+      const years = getUniqueSorted(pairs.map((item) => item.year));
+      const branches = getUniqueSorted(pairs.map((item) => item.branch));
+      const sources = getUniqueSorted(pairs.flatMap((item) => Object.keys(item.sourceBreakdown)));
+      const validDataPoints = pairs.filter((pair) => pair.revenueTotal > 0 || pair.quantityTotal > 0 || pair.closeRate !== null).length;
+
+      return {
+        kind: 'matrix',
+        datasetName,
+        modelLabel: 'Ma trận tổng hợp theo năm × chi nhánh',
+        supportsMonthFilter: false,
+        monthDisabledReason: 'File tổng hợp theo năm, không có dữ liệu tháng',
+        rangeText: years.length ? `${Math.min(...years)} - ${Math.max(...years)}` : 'Không xác định',
+        validDataPoints,
+        branches,
+        years,
+        months: [],
+        sources,
+        pairs,
+        mapping: {
+          type: 'File ma trận tổng hợp',
+          yearRow: prettyRowIndex(yearRowIndex),
+          branchRow: prettyRowIndex(branchRowIndex),
+          revenueSection: prettyRowIndex(sectionRows.find((item) => item.key === 'revenueProduct')?.rowIndex),
+          sourceSection: prettyRowIndex(sectionRows.find((item) => item.key === 'sourceBreakdown')?.rowIndex),
+          quantitySection: prettyRowIndex(sectionRows.find((item) => item.key === 'quantity')?.rowIndex),
+          avgTicketSection: prettyRowIndex(sectionRows.find((item) => item.key === 'avgTicket')?.rowIndex),
+          closeRateRow: prettyRowIndex(sectionRows.find((item) => item.key === 'closeRate')?.rowIndex),
+          notes: 'Year lấy từ hàng 1, branch lấy từ hàng 2, mỗi cột là 1 cặp năm + chi nhánh'
+        }
+      };
+    }
+
+    // ==============================
+    // Transaction parser
+    // ==============================
+    function parseTransactionDataset(rows, datasetName = 'Dataset transaction') {
+      const headerRowIndex = inferHeaderRow(rows);
+      const headers = rows[headerRowIndex] || [];
+      const normalizedHeaders = headers.map((header) => normalizeText(header));
+
+      if (!headers.length) {
+        throw new Error('Không tìm thấy hàng tiêu đề hợp lệ để parse transaction.');
+      }
+
+      const columnMapping = {
+        date: findColumnIndexByAliases(normalizedHeaders, ['ngay', 'date', ['thoi', 'gian'], 'created']),
+        revenue: findColumnIndexByAliases(normalizedHeaders, ['doanh thu', 'revenue', 'amount', ['gia', 'tri'], 'thanh tien', 'total']),
+        branch: findColumnIndexByAliases(normalizedHeaders, ['chi nhanh', 'branch', ['co', 'so'], 'store', 'location']),
+        customer: findColumnIndexByAliases(normalizedHeaders, ['khach hang', 'customer', 'client', 'member']),
+        source: findColumnIndexByAliases(normalizedHeaders, ['nguon', 'source', 'channel', 'kenh']),
+        sales: findColumnIndexByAliases(normalizedHeaders, ['sales', 'sale', 'tu van', 'staff', 'consultant', 'owner']),
+        closeStatus: findColumnIndexByAliases(normalizedHeaders, ['trang thai chot', 'close', 'status', ['da', 'chot'], 'won', 'result']),
+        quantity: findColumnIndexByAliases(normalizedHeaders, ['so luong', 'quantity', 'qty', 'units'])
+      };
+
+      if (columnMapping.revenue === -1 && columnMapping.quantity === -1 && columnMapping.date === -1) {
+        throw new Error('Không suy luận được mapping cột phổ biến cho file transaction.');
+      }
+
+      const records = [];
+      for (let rowIndex = headerRowIndex + 1; rowIndex < rows.length; rowIndex += 1) {
+        const row = rows[rowIndex] || [];
+        const rawDate = columnMapping.date > -1 ? row[columnMapping.date] : null;
+        const rawRevenue = columnMapping.revenue > -1 ? row[columnMapping.revenue] : null;
+        const rawBranch = columnMapping.branch > -1 ? row[columnMapping.branch] : null;
+        const rawSource = columnMapping.source > -1 ? row[columnMapping.source] : null;
+        const rawCustomer = columnMapping.customer > -1 ? row[columnMapping.customer] : null;
+        const rawSales = columnMapping.sales > -1 ? row[columnMapping.sales] : null;
+        const rawStatus = columnMapping.closeStatus > -1 ? row[columnMapping.closeStatus] : null;
+        const rawQuantity = columnMapping.quantity > -1 ? row[columnMapping.quantity] : null;
+
+        const date = parseExcelDate(rawDate);
+        const revenue = parseNumber(rawRevenue);
+        const quantity = parseNumber(rawQuantity);
+        const branch = String(rawBranch ?? '').trim();
+        const source = String(rawSource ?? '').trim();
+        const customer = String(rawCustomer ?? '').trim();
+        const sales = String(rawSales ?? '').trim();
+        const closed = parseCloseStatus(rawStatus);
+
+        const hasSignal = date || revenue !== null || branch || source || customer || sales || quantity !== null;
+        if (!hasSignal) continue;
+
+        records.push({
+          date,
+          year: date ? date.getFullYear() : null,
+          month: date ? date.getMonth() + 1 : null,
+          revenue: revenue ?? 0,
+          branch: branch || 'Không rõ chi nhánh',
+          source: source || 'Không rõ nguồn',
+          customer,
+          sales,
+          quantity: quantity ?? 1,
+          closed
+        });
+      }
+
+      if (!records.length) {
+        throw new Error('File transaction không có dòng dữ liệu hợp lệ sau khi parse.');
+      }
+
+      const years = getUniqueSorted(records.map((item) => item.year).filter(Boolean));
+      const months = getUniqueSorted(records.map((item) => item.month).filter(Boolean));
+      const branches = getUniqueSorted(records.map((item) => item.branch));
+      const sources = getUniqueSorted(records.map((item) => item.source));
+      const validDates = records.map((record) => record.date).filter(Boolean).sort((a, b) => a - b);
+      const supportsMonthFilter = months.length > 0;
+
+      return {
+        kind: 'transaction',
+        datasetName,
+        modelLabel: supportsMonthFilter ? 'Transaction theo dòng' : 'Transaction theo dòng (thiếu dữ liệu tháng)',
+        supportsMonthFilter,
+        monthDisabledReason: supportsMonthFilter ? '' : 'File chưa có dữ liệu ngày/tháng đủ rõ để bật bộ lọc tháng',
+        rangeText: validDates.length ? `${formatDateShort(validDates[0])} → ${formatDateShort(validDates[validDates.length - 1])}` : (years.length ? `${Math.min(...years)} - ${Math.max(...years)}` : 'Không xác định'),
+        validDataPoints: records.length,
+        branches,
+        years,
+        months,
+        sources,
+        records,
+        mapping: {
+          type: 'File transaction theo dòng',
+          headerRow: prettyRowIndex(headerRowIndex),
+          dateColumn: formatColumnMapping(headers, columnMapping.date),
+          revenueColumn: formatColumnMapping(headers, columnMapping.revenue),
+          branchColumn: formatColumnMapping(headers, columnMapping.branch),
+          customerColumn: formatColumnMapping(headers, columnMapping.customer),
+          sourceColumn: formatColumnMapping(headers, columnMapping.source),
+          salesColumn: formatColumnMapping(headers, columnMapping.sales),
+          closeStatusColumn: formatColumnMapping(headers, columnMapping.closeStatus),
+          quantityColumn: formatColumnMapping(headers, columnMapping.quantity),
+          notes: 'Dashboard tự suy luận cột ngày, doanh thu, chi nhánh, khách hàng, nguồn khách, sales, trạng thái chốt'
+        }
+      };
+    }
+
+    function formatColumnMapping(headers, index) {
+      if (index === -1 || index === undefined) return 'Không tìm thấy';
+      const excelLetter = String.fromCharCode(65 + index);
+      return `${headers[index] || 'Không tên'} (${excelLetter})`;
+    }
+
+    // ==============================
+    // State & render
+    // ==============================
+    function setDataset(dataset) {
+      appState.dataset = dataset;
+      appState.filters.year = 'ALL';
+      appState.filters.month = 'ALL';
+      appState.filters.branch = 'ALL';
+      populateFilters();
+      renderDashboard();
+    }
+
+    function populateFilters() {
+      const dataset = appState.dataset;
+      if (!dataset) return;
+
+      populateSelect(document.getElementById('yearFilter'), 'Tất cả năm', dataset.years.map((year) => ({ value: String(year), label: String(year) })));
+      populateSelect(
+        document.getElementById('monthFilter'),
+        'Tất cả tháng',
+        dataset.months.map((month) => ({ value: String(month), label: `Tháng ${month}` }))
+      );
+      populateSelect(
+        document.getElementById('branchFilter'),
+        'Tất cả chi nhánh',
+        dataset.branches.map((branch) => ({ value: branch, label: branch }))
+      );
+
+      document.getElementById('monthFilter').disabled = !dataset.supportsMonthFilter;
+      document.getElementById('monthHint').textContent = dataset.supportsMonthFilter
+        ? 'File có dữ liệu thời gian, bộ lọc tháng đang hoạt động'
+        : dataset.monthDisabledReason || 'File không có dữ liệu tháng';
+    }
+
+    function populateSelect(selectElement, defaultLabel, options) {
+      const currentValue = selectElement.value || 'ALL';
+      selectElement.innerHTML = '';
+
+      const allOption = document.createElement('option');
+      allOption.value = 'ALL';
+      allOption.textContent = defaultLabel;
+      selectElement.appendChild(allOption);
+
+      options.forEach((option) => {
+        const el = document.createElement('option');
+        el.value = option.value;
+        el.textContent = option.label;
+        selectElement.appendChild(el);
+      });
+
+      selectElement.value = options.some((item) => item.value === currentValue) ? currentValue : 'ALL';
+    }
+
+    function renderDashboard() {
+      const dataset = appState.dataset;
+      if (!dataset) return;
+
+      const snapshot = buildSnapshot(dataset, appState.filters);
+      renderHero(dataset);
+      renderKpis(snapshot);
+      renderInsights(snapshot);
+      renderMapping(dataset);
+      renderCharts(snapshot);
+    }
+
+    function buildSnapshot(dataset, filters) {
+      if (dataset.kind === 'matrix') return buildMatrixSnapshot(dataset, filters);
+      return buildTransactionSnapshot(dataset, filters);
+    }
+
+    function buildMatrixSnapshot(dataset, filters) {
+      const filteredPairs = dataset.pairs.filter((pair) => {
+        const matchYear = filters.year === 'ALL' || String(pair.year) === String(filters.year);
+        const matchBranch = filters.branch === 'ALL' || pair.branch === filters.branch;
+        return matchYear && matchBranch;
+      });
+
+      const totalRevenue = sumBy(filteredPairs, 'revenueTotal');
+      const totalQuantity = sumBy(filteredPairs, 'quantityTotal');
+      const weightedCloseRate = weightedAverage(
+        filteredPairs.map((pair) => ({ value: pair.closeRate, weight: pair.quantityTotal || 1 }))
+      );
+      const avgTicket = totalQuantity > 0 ? totalRevenue / totalQuantity : average(
+        filteredPairs.map((pair) => pair.avgTicket).filter((value) => value !== null)
+      );
+
+      const yearRevenueMap = aggregateMatrix(filteredPairs, (pair) => pair.year, (pair) => pair.revenueTotal);
+      const branchRevenueMap = aggregateMatrix(filteredPairs, (pair) => pair.branch, (pair) => pair.revenueTotal);
+      const sourceRevenueMap = aggregateNested(filteredPairs, 'sourceBreakdown');
+      const closeRateByBranchMap = aggregateAverageByKey(filteredPairs, (pair) => pair.branch, (pair) => pair.closeRate, (pair) => pair.quantityTotal || 1);
+
+      const trendData = buildMatrixTrendData(dataset, filters, filteredPairs);
+      const topBranch = getTopEntry(branchRevenueMap);
+      const topSource = getTopEntry(sourceRevenueMap);
+      const standoutYear = getTopEntry(yearRevenueMap);
+
+      return {
+        dataset,
+        kind: 'matrix',
+        filters,
+        filteredRecords: filteredPairs,
+        kpis: {
+          totalRevenue,
+          volume: totalQuantity,
+          volumeLabel: totalQuantity > 0 ? 'Số lượng bán' : 'Điểm dữ liệu',
+          volumeSubtext: totalQuantity > 0 ? 'Tổng số lượng gói bán ra theo bộ lọc hiện tại' : 'Không có section số lượng bán rõ ràng',
+          aov: avgTicket || 0,
+          aovSubtext: 'Được lấy từ đơn giá trung bình hoặc tự tính doanh thu / số lượng',
+          closeRate: weightedCloseRate || 0,
+          closeRateSubtext: 'Trung bình gia quyền theo quy mô bán hàng của từng chi nhánh'
+        },
+        trendData,
+        branchChart: {
+          labels: Object.keys(branchRevenueMap),
+          values: Object.values(branchRevenueMap)
+        },
+        sourceChart: {
+          labels: Object.keys(sourceRevenueMap),
+          values: Object.values(sourceRevenueMap)
+        },
+        closeRateChart: {
+          mode: 'branchRate',
+          labels: Object.keys(closeRateByBranchMap),
+          values: Object.values(closeRateByBranchMap)
+        },
+        insights: buildMatrixInsights({ topBranch, topSource, standoutYear, weightedCloseRate, avgTicket, totalRevenue, filteredPairs, filters }),
+        captions: {
+          trend: trendData.caption,
+          closeRate: 'Với file tổng hợp, biểu đồ hiển thị tỷ lệ chốt theo chi nhánh'
+        }
+      };
+    }
+
+    function buildMatrixTrendData(dataset, filters, filteredPairs) {
+      if (filters.year === 'ALL') {
+        const grouped = aggregateMatrix(filteredPairs, (pair) => pair.year, (pair) => pair.revenueTotal);
+        return {
+          title: 'Xu hướng doanh thu theo năm',
+          caption: 'Áp dụng cho file ma trận nhiều năm; nếu chọn 1 năm sẽ chuyển sang xem theo chi nhánh',
+          labels: Object.keys(grouped),
+          values: Object.values(grouped),
+          type: 'line'
+        };
+      }
+
+      const grouped = aggregateMatrix(filteredPairs, (pair) => pair.branch, (pair) => pair.revenueTotal);
+      return {
+        title: `Doanh thu theo chi nhánh · ${filters.year}`,
+        caption: 'Bạn đang lọc 1 năm nên biểu đồ chuyển sang so sánh chi nhánh',
+        labels: Object.keys(grouped),
+        values: Object.values(grouped),
+        type: 'bar'
+      };
+    }
+
+    function buildMatrixInsights(context) {
+      const insights = [];
+      const { topBranch, topSource, standoutYear, weightedCloseRate, avgTicket, filteredPairs, filters } = context;
+
+      insights.push(
+        topBranch
+          ? `Chi nhánh dẫn đầu hiện tại là <strong>${topBranch.label}</strong> với doanh thu khoảng <strong>${formatCurrencyVND(topBranch.value)}</strong>.`
+          : 'Chưa xác định được chi nhánh dẫn đầu do thiếu dữ liệu doanh thu.'
+      );
+
+      insights.push(
+        topSource
+          ? `Nguồn khách đóng góp lớn nhất là <strong>${topSource.label}</strong>, cho thấy đây là kênh cần tiếp tục ưu tiên ngân sách chăm sóc và tái kích hoạt.`
+          : 'Chưa có đủ dữ liệu nguồn khách để xác định cơ cấu kênh hiệu quả nhất.'
+      );
+
+      insights.push(
+        weightedCloseRate !== null
+          ? `Hiệu suất bán hàng trung bình đang ở mức <strong>${formatPercent(weightedCloseRate)}</strong>${avgTicket ? `, với AOV khoảng <strong>${formatCurrencyVND(avgTicket)}</strong>.` : '.'}`
+          : 'Không có dòng tỷ lệ chốt sales rõ ràng, dashboard đang giữ hiển thị an toàn.'
+      );
+
+      insights.push(
+        standoutYear
+          ? `Giai đoạn nổi bật nhất là <strong>${standoutYear.label}</strong>${filters.branch !== 'ALL' ? ` tại <strong>${filters.branch}</strong>` : ''}, nơi doanh thu ghi nhận mức cao nhất trong phạm vi đang xem.`
+          : `Dữ liệu hiện tại có <strong>${filteredPairs.length}</strong> điểm tổng hợp hợp lệ nhưng chưa đủ để xác định giai đoạn nổi bật nhất.`
+      );
+
+      return insights.slice(0, 4);
+    }
+
+    function buildTransactionSnapshot(dataset, filters) {
+      const filteredRecords = dataset.records.filter((record) => {
+        const matchYear = filters.year === 'ALL' || String(record.year) === String(filters.year);
+        const matchMonth = !dataset.supportsMonthFilter || filters.month === 'ALL' || String(record.month) === String(filters.month);
+        const matchBranch = filters.branch === 'ALL' || record.branch === filters.branch;
+        return matchYear && matchMonth && matchBranch;
+      });
+
+      const totalRevenue = filteredRecords.reduce((sum, item) => sum + (item.revenue || 0), 0);
+      const hasQuantitySignal = filteredRecords.some((item) => item.quantity && item.quantity !== 1) || dataset.mapping.quantityColumn !== 'Không tìm thấy';
+      const uniqueCustomerCount = new Set(filteredRecords.map((item) => item.customer).filter(Boolean)).size;
+      const totalQuantity = hasQuantitySignal ? filteredRecords.reduce((sum, item) => sum + (item.quantity || 0), 0) : uniqueCustomerCount || filteredRecords.length;
+      const denominatorForAov = hasQuantitySignal ? totalQuantity : filteredRecords.length || 1;
+      const closedStats = countClosedStats(filteredRecords);
+      const aov = denominatorForAov > 0 ? totalRevenue / denominatorForAov : 0;
+      const closeRate = closedStats.total > 0 ? closedStats.closed / closedStats.total : 0;
+
+      const branchRevenueMap = aggregateTransaction(filteredRecords, (record) => record.branch, (record) => record.revenue || 0);
+      const sourceRevenueMap = aggregateTransaction(filteredRecords, (record) => record.source, (record) => record.revenue || 0);
+      const yearRevenueMap = aggregateTransaction(filteredRecords, (record) => record.year || 'Không rõ năm', (record) => record.revenue || 0);
+      const topBranch = getTopEntry(branchRevenueMap);
+      const topSource = getTopEntry(sourceRevenueMap);
+      const standoutYear = getTopEntry(yearRevenueMap);
+      const trendData = buildTransactionTrendData(dataset, filters, filteredRecords);
+
+      return {
+        dataset,
+        kind: 'transaction',
+        filters,
+        filteredRecords,
+        kpis: {
+          totalRevenue,
+          volume: totalQuantity,
+          volumeLabel: hasQuantitySignal ? 'Số lượng bán' : (uniqueCustomerCount > 0 ? 'Số lượng khách' : 'Số giao dịch'),
+          volumeSubtext: hasQuantitySignal ? 'Tổng số lượng giao dịch / sản phẩm đã bán' : (uniqueCustomerCount > 0 ? 'Đếm theo số khách hàng khác nhau' : 'Đếm số dòng giao dịch hợp lệ'),
+          aov,
+          aovSubtext: hasQuantitySignal ? 'Doanh thu chia cho số lượng bán' : 'Doanh thu trung bình trên giao dịch / đơn vị đếm chính',
+          closeRate,
+          closeRateSubtext: 'Tính từ trạng thái chốt đã suy luận trong file transaction'
+        },
+        trendData,
+        branchChart: {
+          labels: Object.keys(branchRevenueMap),
+          values: Object.values(branchRevenueMap)
+        },
+        sourceChart: {
+          labels: Object.keys(sourceRevenueMap),
+          values: Object.values(sourceRevenueMap)
+        },
+        closeRateChart: {
+          mode: 'closedVsOpen',
+          labels: ['Đã chốt', 'Chưa chốt'],
+          values: [closedStats.closed, closedStats.notClosed]
+        },
+        insights: buildTransactionInsights({ topBranch, topSource, standoutYear, closeRate, aov, filteredRecords, filters, totalRevenue, closedStats }),
+        captions: {
+          trend: trendData.caption,
+          closeRate: 'Với file transaction, biểu đồ hiển thị closed vs not closed'
+        }
+      };
+    }
+
+    function buildTransactionTrendData(dataset, filters, filteredRecords) {
+      if (dataset.supportsMonthFilter && (filters.year !== 'ALL' || dataset.years.length <= 1)) {
+        const grouped = {};
+        filteredRecords.forEach((record) => {
+          const label = `T${record.month || 0}`;
+          grouped[label] = (grouped[label] || 0) + (record.revenue || 0);
+        });
+        const labels = Object.keys(grouped).sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
+        return {
+          title: 'Xu hướng doanh thu theo tháng',
+          caption: 'Do file có dữ liệu thời gian nên biểu đồ ưu tiên hiển thị theo tháng',
+          labels,
+          values: labels.map((label) => grouped[label]),
+          type: 'line'
+        };
+      }
+
+      if (dataset.years.length > 1) {
+        const grouped = aggregateTransaction(filteredRecords, (record) => record.year || 'Không rõ năm', (record) => record.revenue || 0);
+        return {
+          title: 'Xu hướng doanh thu theo năm',
+          caption: 'File transaction chưa đủ dữ liệu tháng hoặc đang xem đa năm',
+          labels: Object.keys(grouped),
+          values: Object.values(grouped),
+          type: 'line'
+        };
+      }
+
+      const grouped = aggregateTransaction(filteredRecords, (record) => record.branch, (record) => record.revenue || 0);
+      return {
+        title: 'Doanh thu theo chi nhánh',
+        caption: 'Khi không có đủ trục thời gian, dashboard chuyển sang hiển thị theo chi nhánh',
+        labels: Object.keys(grouped),
+        values: Object.values(grouped),
+        type: 'bar'
+      };
+    }
+
+    function buildTransactionInsights(context) {
+      const insights = [];
+      const { topBranch, topSource, standoutYear, closeRate, aov, filteredRecords, filters, totalRevenue, closedStats } = context;
+
+      insights.push(
+        topBranch
+          ? `Chi nhánh dẫn đầu doanh thu là <strong>${topBranch.label}</strong> với mức đóng góp khoảng <strong>${formatCurrencyVND(topBranch.value)}</strong>.`
+          : 'Chưa xác định được chi nhánh dẫn đầu vì dữ liệu chi nhánh còn thiếu.'
+      );
+
+      insights.push(
+        topSource
+          ? `Nguồn khách nổi bật nhất hiện tại là <strong>${topSource.label}</strong>, đang mang lại phần doanh thu lớn nhất trong tập dữ liệu đã lọc.`
+          : 'Chưa có đủ dữ liệu nguồn khách để xác định kênh đóng góp lớn nhất.'
+      );
+
+      insights.push(
+        closedStats.total > 0
+          ? `Tỷ lệ chốt đạt <strong>${formatPercent(closeRate)}</strong>${aov ? `, tương ứng AOV khoảng <strong>${formatCurrencyVND(aov)}</strong>.` : '.'}`
+          : `Dữ liệu trạng thái chốt chưa rõ ràng, dashboard vẫn đang phân tích trên <strong>${filteredRecords.length}</strong> giao dịch hợp lệ.`
+      );
+
+      insights.push(
+        standoutYear
+          ? `Giai đoạn nổi bật nhất là <strong>${standoutYear.label}</strong>${filters.branch !== 'ALL' ? ` tại <strong>${filters.branch}</strong>` : ''}, với tổng doanh thu cao nhất trong vùng đang xem.`
+          : `Tổng doanh thu hiện tại đạt <strong>${formatCurrencyVND(totalRevenue)}</strong>, nhưng chưa đủ tín hiệu thời gian để chọn ra giai đoạn nổi bật.`
+      );
+
+      return insights.slice(0, 4);
+    }
+
+    function renderHero(dataset) {
+      document.getElementById('datasetBadge').textContent = `Dataset: ${dataset.datasetName}`;
+      document.getElementById('monthSupportBadge').textContent = dataset.supportsMonthFilter
+        ? 'Bộ lọc tháng: Có hỗ trợ'
+        : 'Bộ lọc tháng: Đã tắt';
+      document.getElementById('modelBadge').textContent = `Mô hình dữ liệu: ${dataset.modelLabel}`;
+
+      document.getElementById('summaryRange').textContent = dataset.rangeText || '-';
+      document.getElementById('summaryPoints').textContent = formatInteger(dataset.validDataPoints || 0);
+      document.getElementById('summaryBranches').textContent = formatInteger(dataset.branches.length || 0);
+      document.getElementById('summarySources').textContent = formatInteger(dataset.sources.length || 0);
+    }
+
+    function renderKpis(snapshot) {
+      document.getElementById('kpiRevenue').textContent = formatCurrencyVND(snapshot.kpis.totalRevenue || 0);
+      document.getElementById('kpiRevenueSub').textContent = 'Tổng doanh thu theo bộ lọc hiện tại';
+
+      document.getElementById('kpiVolumeLabel').textContent = snapshot.kpis.volumeLabel;
+      document.getElementById('kpiVolume').textContent = formatInteger(snapshot.kpis.volume || 0);
+      document.getElementById('kpiVolumeSub').textContent = snapshot.kpis.volumeSubtext;
+
+      document.getElementById('kpiAov').textContent = formatCurrencyVND(snapshot.kpis.aov || 0);
+      document.getElementById('kpiAovSub').textContent = snapshot.kpis.aovSubtext;
+
+      document.getElementById('kpiCloseRate').textContent = formatPercent(snapshot.kpis.closeRate || 0);
+      document.getElementById('kpiCloseRateSub').textContent = snapshot.kpis.closeRateSubtext;
+    }
+
+    function renderInsights(snapshot) {
+      const container = document.getElementById('insightsList');
+      container.innerHTML = '';
+      snapshot.insights.forEach((insight, index) => {
+        const item = document.createElement('div');
+        item.className = 'insight-item';
+        item.innerHTML = `<strong>Insight ${index + 1}.</strong> ${insight}`;
+        container.appendChild(item);
+      });
+    }
+
+    function renderMapping(dataset) {
+      const container = document.getElementById('mappingGrid');
+      container.innerHTML = '';
+
+      const mappingEntries = Object.entries(dataset.mapping || {});
+      mappingEntries.forEach(([key, value]) => {
+        const item = document.createElement('div');
+        item.className = 'mapping-item';
+        item.innerHTML = `
+          <span class="mapping-label">${humanizeMappingKey(key)}</span>
+          <div class="mapping-value">${escapeHtml(String(value ?? '-'))}</div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function humanizeMappingKey(key) {
+      const labels = {
+        type: 'Dạng file',
+        yearRow: 'Hàng năm',
+        branchRow: 'Hàng chi nhánh',
+        revenueSection: 'Section doanh thu',
+        sourceSection: 'Section nguồn khách',
+        quantitySection: 'Section số lượng bán',
+        avgTicketSection: 'Section đơn giá trung bình',
+        closeRateRow: 'Dòng tỷ lệ chốt',
+        headerRow: 'Hàng tiêu đề',
+        dateColumn: 'Cột ngày',
+        revenueColumn: 'Cột doanh thu',
+        branchColumn: 'Cột chi nhánh',
+        customerColumn: 'Cột khách hàng',
+        sourceColumn: 'Cột nguồn khách',
+        salesColumn: 'Cột sales',
+        closeStatusColumn: 'Cột trạng thái chốt',
+        quantityColumn: 'Cột số lượng',
+        notes: 'Ghi chú mapping'
+      };
+      return labels[key] || key;
+    }
+
+    function renderCharts(snapshot) {
+      document.getElementById('trendTitle').textContent = snapshot.trendData.title;
+      document.getElementById('trendCaption').textContent = snapshot.captions.trend;
+      document.getElementById('closeRateCaption').textContent = snapshot.captions.closeRate;
+
+      upsertChart('trendChart', createTrendConfig(snapshot.trendData));
+      upsertChart('branchChart', createBarConfig('Doanh thu', snapshot.branchChart.labels, snapshot.branchChart.values, true));
+      upsertChart('sourceChart', createDoughnutConfig(snapshot.sourceChart.labels, snapshot.sourceChart.values, true));
+
+      if (snapshot.closeRateChart.mode === 'branchRate') {
+        upsertChart(
+          'closeRateChart',
+          createBarConfig('Tỷ lệ chốt', snapshot.closeRateChart.labels, snapshot.closeRateChart.values, false, true)
+        );
+      } else {
+        upsertChart('closeRateChart', createDoughnutConfig(snapshot.closeRateChart.labels, snapshot.closeRateChart.values, false));
+      }
+    }
+
+    function upsertChart(chartId, config) {
+      const canvas = document.getElementById(chartId);
+      if (!canvas) return;
+
+      if (appState.charts[chartId]) {
+        appState.charts[chartId].destroy();
+      }
+
+      appState.charts[chartId] = new Chart(canvas, config);
+    }
+
+    function createTrendConfig(trendData) {
+      if (trendData.type === 'bar') {
+        return createBarConfig('Doanh thu', trendData.labels, trendData.values, true);
+      }
+
+      return {
+        type: 'line',
+        data: {
+          labels: trendData.labels,
+          datasets: [{
+            label: 'Doanh thu',
+            data: trendData.values,
+            borderColor: COLOR_SET.rose,
+            backgroundColor: COLOR_SET.roseSoft,
+            fill: true,
+            tension: 0.34,
+            borderWidth: 2.5,
+            pointRadius: 4,
+            pointHoverRadius: 5,
+            pointBackgroundColor: COLOR_SET.softBrown,
+            pointBorderWidth: 0
+          }]
+        },
+        options: buildCommonChartOptions({ currency: true, percent: false })
+      };
+    }
+
+    function createBarConfig(label, labels, values, currency = true, percent = false) {
+      return {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label,
+            data: values,
+            borderRadius: 12,
+            maxBarThickness: 38,
+            backgroundColor: labels.map((_, index) => COLOR_SET.palette[index % COLOR_SET.palette.length]),
+            borderSkipped: false
+          }]
+        },
+        options: buildCommonChartOptions({ currency, percent })
+      };
+    }
+
+    function createDoughnutConfig(labels, values, currency = true) {
+      return {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: labels.map((_, index) => COLOR_SET.palette[index % COLOR_SET.palette.length]),
+            borderColor: 'rgba(255,255,255,0.8)',
+            borderWidth: 3,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '62%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#6f5a52',
+                usePointStyle: true,
+                pointStyle: 'circle',
+                padding: 18,
+                font: { family: 'Inter', size: 12, weight: 600 }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(86, 62, 55, 0.92)',
+              padding: 12,
+              cornerRadius: 12,
+              titleFont: { family: 'Inter', weight: '700' },
+              bodyFont: { family: 'Inter', weight: '600' },
+              callbacks: {
+                label: (context) => {
+                  const value = context.raw || 0;
+                  return currency
+                    ? `${context.label}: ${formatCurrencyVND(value)}`
+                    : `${context.label}: ${formatInteger(value)}`;
+                }
+              }
+            }
+          }
+        }
+      };
+    }
+
+    function buildCommonChartOptions({ currency = true, percent = false } = {}) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: 'rgba(86, 62, 55, 0.92)',
+            padding: 12,
+            cornerRadius: 12,
+            titleFont: { family: 'Inter', weight: '700' },
+            bodyFont: { family: 'Inter', weight: '600' },
+            callbacks: {
+              label: (context) => {
+                const value = context.raw || 0;
+                if (percent) return `${context.dataset.label}: ${formatPercent(value)}`;
+                if (currency) return `${context.dataset.label}: ${formatCurrencyVND(value)}`;
+                return `${context.dataset.label}: ${formatInteger(value)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: '#7b6258',
+              font: { family: 'Inter', size: 12, weight: 600 }
+            },
+            grid: {
+              display: false,
+              drawBorder: false
+            },
+            border: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: '#8a7167',
+              font: { family: 'Inter', size: 11, weight: 600 },
+              callback: (value) => {
+                if (percent) return formatPercent(value);
+                if (currency) return compactCurrencyVND(value);
+                return compactNumber(value);
+              }
+            },
+            grid: {
+              color: COLOR_SET.neutralLine,
+              drawBorder: false
+            },
+            border: { display: false }
+          }
+        }
+      };
+    }
+
+    // ==============================
+    // Aggregation helpers
+    // ==============================
+    function sumValues(object) {
+      return Object.values(object || {}).reduce((sum, value) => sum + (Number(value) || 0), 0);
+    }
+
+    function weightedAverageFromObjects(valueObject, weightObject) {
+      let totalWeight = 0;
+      let total = 0;
+      Object.keys(valueObject || {}).forEach((key) => {
+        const value = valueObject[key];
+        const weight = weightObject?.[key] ?? 0;
+        if (value !== null && value !== undefined && weight > 0) {
+          total += value * weight;
+          totalWeight += weight;
+        }
+      });
+      return totalWeight > 0 ? total / totalWeight : null;
+    }
+
+    function sumBy(items, field) {
+      return (items || []).reduce((sum, item) => sum + (Number(item?.[field]) || 0), 0);
+    }
+
+    function average(values) {
+      if (!values.length) return null;
+      return values.reduce((sum, value) => sum + value, 0) / values.length;
+    }
+
+    function weightedAverage(entries) {
+      let totalWeight = 0;
+      let totalValue = 0;
+      (entries || []).forEach(({ value, weight }) => {
+        if (value === null || value === undefined || !Number.isFinite(value)) return;
+        const safeWeight = Number(weight) || 0;
+        totalWeight += safeWeight;
+        totalValue += value * safeWeight;
+      });
+      return totalWeight > 0 ? totalValue / totalWeight : null;
+    }
+
+    function aggregateMatrix(items, keyGetter, valueGetter) {
+      return items.reduce((accumulator, item) => {
+        const key = keyGetter(item);
+        accumulator[key] = (accumulator[key] || 0) + (valueGetter(item) || 0);
+        return accumulator;
+      }, {});
+    }
+
+    function aggregateNested(items, field) {
+      return items.reduce((accumulator, item) => {
+        const nested = item[field] || {};
+        Object.entries(nested).forEach(([key, value]) => {
+          accumulator[key] = (accumulator[key] || 0) + (Number(value) || 0);
+        });
+        return accumulator;
+      }, {});
+    }
+
+    function aggregateAverageByKey(items, keyGetter, valueGetter, weightGetter) {
+      const bucket = {};
+      items.forEach((item) => {
+        const key = keyGetter(item);
+        const value = valueGetter(item);
+        const weight = weightGetter(item);
+        if (value === null || value === undefined || !Number.isFinite(value)) return;
+        if (!bucket[key]) bucket[key] = { total: 0, weight: 0 };
+        bucket[key].total += value * (weight || 1);
+        bucket[key].weight += (weight || 1);
+      });
+
+      const result = {};
+      Object.entries(bucket).forEach(([key, value]) => {
+        result[key] = value.weight > 0 ? value.total / value.weight : 0;
+      });
+      return result;
+    }
+
+    function aggregateTransaction(items, keyGetter, valueGetter) {
+      return items.reduce((accumulator, item) => {
+        const key = keyGetter(item);
+        accumulator[key] = (accumulator[key] || 0) + (valueGetter(item) || 0);
+        return accumulator;
+      }, {});
+    }
+
+    function getTopEntry(mapObject) {
+      const entries = Object.entries(mapObject || {}).filter(([, value]) => Number(value) > 0);
+      if (!entries.length) return null;
+      entries.sort((a, b) => b[1] - a[1]);
+      return { label: entries[0][0], value: entries[0][1] };
+    }
+
+    function countClosedStats(records) {
+      return records.reduce((stats, record) => {
+        if (record.closed === true) {
+          stats.closed += 1;
+          stats.total += 1;
+        } else if (record.closed === false) {
+          stats.notClosed += 1;
+          stats.total += 1;
+        }
+        return stats;
+      }, { closed: 0, notClosed: 0, total: 0 });
+    }
+
+    // ==============================
+    // Formatting
+    // ==============================
+    function formatCurrencyVND(value) {
+      return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+        maximumFractionDigits: 0
+      }).format(Number(value) || 0);
+    }
+
+    function compactCurrencyVND(value) {
+      const number = Number(value) || 0;
+      const abs = Math.abs(number);
+      const sign = number < 0 ? '-' : '';
+      if (abs >= 1e9) return `${sign}${roundTo(abs / 1e9)} tỷ`;
+      if (abs >= 1e6) return `${sign}${roundTo(abs / 1e6)} triệu`;
+      if (abs >= 1e3) return `${sign}${roundTo(abs / 1e3)}k`;
+      return formatInteger(number);
+    }
+
+    function formatPercent(value) {
+      const safeValue = Number(value) || 0;
+      return `${(safeValue * 100).toFixed(1)}%`;
+    }
+
+    function formatInteger(value) {
+      return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(Number(value) || 0);
+    }
+
+    function compactNumber(value) {
+      const number = Number(value) || 0;
+      const abs = Math.abs(number);
+      if (abs >= 1e9) return `${roundTo(number / 1e9)}B`;
+      if (abs >= 1e6) return `${roundTo(number / 1e6)}M`;
+      if (abs >= 1e3) return `${roundTo(number / 1e3)}K`;
+      return formatInteger(number);
+    }
+
+    function roundTo(value) {
+      return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(value);
+    }
+
+    function formatDateShort(date) {
+      if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '-';
+      return new Intl.DateTimeFormat('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).format(date);
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // ==============================
+    // Friendly error helpers
+    // ==============================
+    function showFriendlyError(message, detail = '') {
+      const banner = document.getElementById('errorBanner');
+      banner.classList.remove('hidden');
+      banner.innerHTML = `
+        <div style="font-size:18px;line-height:1;">⚠️</div>
+        <div>
+          <strong>${escapeHtml(message)}</strong>
+          ${detail ? `<div style="margin-top:4px;">Chi tiết: ${escapeHtml(detail)}</div>` : ''}
+        </div>
+      `;
+    }
+
+    function clearError() {
+      const banner = document.getElementById('errorBanner');
+      banner.classList.add('hidden');
+      banner.innerHTML = '';
+    }
+
+    function setUploadStatus(text, type = '') {
+      const el = document.getElementById('uploadStatus');
+      el.textContent = text;
+      el.className = `status-chip${type ? ` ${type}` : ''}`;
+    }
+  </script>
+</body>
+</html>
